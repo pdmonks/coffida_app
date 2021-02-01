@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Text, TextInput, View, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {Text, TextInput, View, TouchableOpacity, StyleSheet, Alert, ToastAndroid} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Login extends Component {
@@ -12,8 +12,6 @@ class Login extends Component {
     this.state = {
         email: "",
         password: "",
-        //id: "",
-        //token: ""
     }
   }
 
@@ -42,13 +40,6 @@ class Login extends Component {
       })
       .then((response) => response.json())
       .then((responseJson) => {
-        //alert("Logged in with ID: " + responseJson.id + " and session token: " + responseJson.token);
-        //this.setState({
-        //  id: responseJson.id,
-        //  token: responseJson.token
-        //});
-        //alert("ID: " + this.state.id + "Token: " + this.state.token);
-        //this.saveName(this.state.id, this.state.token)
         this.saveName(responseJson.id, responseJson.token)
       })
       .then(this.props.navigation.navigate('Home'))
@@ -62,27 +53,14 @@ class Login extends Component {
 
   saveName = async (id, token) => {
     try {
-        //alert(id + " " + token)
         await AsyncStorage.setItem('@id', id.toString())
+        console.log("ID: " + id.toString())
         await AsyncStorage.setItem('@token', token)
-        //alert(this.state.token)
-        //ToastAndroid.show("ID and token saved!", ToastAndroid.SHORT);
-        this.getName()
+        console.log("Token: " + token)
+        ToastAndroid.show("ID and token saved!", ToastAndroid.SHORT);
       } catch (e) {
         console.log("Something broke...");
         console.log(e);
-      }
-  }
-
-  getName = async () => {
-    try {
-        const idRead = await AsyncStorage.getItem('@id')
-        const tokenRead = await AsyncStorage.getItem('@token')
-        //if(value !== null) {
-            alert("ID: " + idRead + " Token: " + tokenRead + " final answer")
-        //}
-      } catch (e) {
-        console.log("Something broke...")
       }
   }
   
