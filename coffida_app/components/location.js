@@ -13,6 +13,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import LocationScreen from './location-screen';
 import ReviewCreate from './review-create';
 import ReviewUpdate from './review-update';
+import ReviewPhoto from './review-photo';
 
 const LocationStack = createStackNavigator();
 
@@ -26,6 +27,7 @@ class Location extends Component {
           <LocationStack.Screen name="Location" component={LocationScreen} options={{headerShown: false}}/>
           <LocationStack.Screen name="ReviewCreate" component={ReviewCreate} options={{headerShown: false}}/>
           <LocationStack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{headerShown: false}}/>
+          <LocationStack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{headerShown: false}}/>
         </LocationStack.Navigator>
 
     );

@@ -8,6 +8,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import HomeScreen from './home-screen';
 import LocationsScreen from './locations-screen';
+import MyLocationScreen from './mylocation-screen'
 import UserAccount from './user-account';
 
 const Tab = createBottomTabNavigator();
@@ -27,7 +28,9 @@ class Home extends Component {
                 iconName = focused ? 'home' : 'home-outline';
               } else if(route.name === 'Locations') {
                 iconName = focused ? 'cafe' : 'cafe-outline';
-              } else if(route.name === 'UserAccount') {
+              } else if(route.name === 'My Location') {
+                iconName = focused ? 'earth' : 'earth-outline';
+              } else if(route.name === 'User Account') {
                 iconName = focused ? 'body' : 'body-outline'
               }
 
@@ -44,7 +47,8 @@ class Home extends Component {
 
           <Tab.Screen name="Home" component={HomeScreen}/>
           <Tab.Screen name="Locations" component={LocationsScreen}/>
-          <Tab.Screen name="UserAccount" component={UserAccount}/>
+          <Tab.Screen name="My Location" component={MyLocationScreen}/>
+          <Tab.Screen name="User Account" component={UserAccount}/>
         </Tab.Navigator>
 
     );

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Text, TextInput, Button, View, TouchableOpacity, Alert} from 'react-native';
+import {Text, TextInput, Button, View, TouchableOpacity, ScrollView, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class UserAccount extends Component {
@@ -168,27 +168,25 @@ class UserAccount extends Component {
 
                 <Text></Text>
 
-                <View>
-
                     <Text>Update User information</Text>
 
                     <TextInput
-                        placeholder="Enter first name..."
+                        placeholder="Enter new first name..."
                         onChangeText={(first_name) => this.setState({first_name})}
                         value={this.state.first_name}
                     />
                     <TextInput
-                        placeholder="Enter last name..."
+                        placeholder="Enter new last name..."
                         onChangeText={(last_name) => this.setState({last_name})}
                         value={this.state.last_name}
                     />
                     <TextInput
-                        placeholder="Enter email..."
+                        placeholder="Enter new email..."
                         onChangeText={(email) => this.setState({email})}
                         value={this.state.email}
                     />
                     <TextInput
-                        placeholder="Enter password..."
+                        placeholder="Enter new password..."
                         onChangeText={(password) => this.setState({password})}
                         value={this.state.password}
                         secureTextEntry
@@ -197,8 +195,6 @@ class UserAccount extends Component {
                         title="Update"
                         onPress={() => this.updateItem()}
                     />
-                
-                </View>
 
             </View>
 

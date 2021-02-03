@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Text, TextInput, View, TouchableOpacity, StyleSheet, Alert, ToastAndroid} from 'react-native';
+import {Text, TextInput, View, TouchableOpacity, StyleSheet, Alert, ScrollView, ToastAndroid} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Login extends Component {
@@ -47,7 +47,7 @@ class Login extends Component {
           console.error(error);
       });
     } else {
-        alert("Please enter email and password");
+        Alert.alert("Please enter email and password");
     }
   }
 
@@ -73,6 +73,8 @@ class Login extends Component {
       <View>
 
         <Text style={styles.title}>Login</Text>
+
+        <ScrollView>
 
         <View style={StyleSheet.formItem}>
             <Text style={styles.formLabel}>Email:</Text>
@@ -121,6 +123,8 @@ class Login extends Component {
                 <Text style={styles.formTouchText}>Back to Welcome Screen</Text>
             </TouchableOpacity>
         </View>
+
+        </ScrollView>
 
       </View>
 

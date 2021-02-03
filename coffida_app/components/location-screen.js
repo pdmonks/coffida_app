@@ -30,6 +30,14 @@ class LocationScreen extends Component {
 
                 <View>
                     <TouchableOpacity
+                        onPress={() => navigation.navigate('ReviewPhoto')}
+                    >
+                    <Text>Take a photo</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View>
+                    <TouchableOpacity
                         onPress={() => navigation.goBack()}
                     >
                     <Text>Back to Locations List</Text>
