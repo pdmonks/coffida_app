@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
-import {Text, View, TouchableOpacity} from 'react-native';
+import React, { Component } from 'react';
+import { Text, View, TouchableOpacity } from 'react-native';
 
-class LocationsScreen extends Component {
+class Locations extends Component {
 
     render() {
 
@@ -14,7 +14,7 @@ class LocationsScreen extends Component {
 
                 <View>
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('Location')}
+                        onPress={() => navigation.navigate('LocationNav')}
                     >
                     <Text>Example Location</Text>
                     </TouchableOpacity>
@@ -30,4 +30,4 @@ class LocationsScreen extends Component {
 
 }
 
-export default LocationsScreen;
+export default Locations;

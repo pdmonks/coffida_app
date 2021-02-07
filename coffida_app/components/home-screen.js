@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
-import {Text, View, TouchableOpacity, Button} from 'react-native';
+import React, { Component } from 'react';
+import { Text, View, TouchableOpacity } from 'react-native';
 
-class HomeScreen extends Component {
+class Home extends Component {
 
     render() {
 
@@ -27,4 +27,4 @@ class HomeScreen extends Component {
 
 }
 
-export default HomeScreen;
+export default Home;

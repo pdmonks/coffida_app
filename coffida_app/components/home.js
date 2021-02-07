@@ -1,18 +1,18 @@
 import 'react-native-gesture-handler';
-
-import React, {Component} from 'react';
-//import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import React, { Component } from 'react';
+// import {NavigationContainer} from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import HomeScreen from './home-screen';
-import LocationsScreen from './locations-screen';
+import Home from './home-screen';
+import Locations from './locations-screen';
+import MyLocation from './mylocation-screen';
 import UserAccount from './user-account';
 
 const Tab = createBottomTabNavigator();
 
-class Home extends Component {
+class HomeNav extends Component {
 
   render() {
 
@@ -27,7 +27,9 @@ class Home extends Component {
                 iconName = focused ? 'home' : 'home-outline';
               } else if(route.name === 'Locations') {
                 iconName = focused ? 'cafe' : 'cafe-outline';
-              } else if(route.name === 'UserAccount') {
+              } else if(route.name === 'My Location') {
+                iconName = focused ? 'earth' : 'earth-outline';
+              } else if(route.name === 'User Account') {
                 iconName = focused ? 'body' : 'body-outline'
               }
 
@@ -42,9 +44,10 @@ class Home extends Component {
           }}
         >
 
-          <Tab.Screen name="Home" component={HomeScreen}/>
-          <Tab.Screen name="Locations" component={LocationsScreen}/>
-          <Tab.Screen name="UserAccount" component={UserAccount}/>
+          <Tab.Screen name="Home" component={Home}/>
+          <Tab.Screen name="Locations" component={Locations}/>
+          <Tab.Screen name="My Location" component={MyLocation}/>
+          <Tab.Screen name="User Account" component={UserAccount}/>
         </Tab.Navigator>
 
     );
@@ -54,4 +57,4 @@ class Home extends Component {
 }
 
 
-export default Home;
+export default HomeNav;
