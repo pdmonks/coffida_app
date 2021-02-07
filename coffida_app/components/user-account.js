@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import React, { Component } from 'react';
 import { ToastAndroid, View, ActivityIndicator } from 'react-native';
+=======
+import React, {Component} from 'react';
+import {Text, TextInput, Button, View, TouchableOpacity, ScrollView, Alert} from 'react-native';
+>>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Container, Content, Form, Item, Input, Text, Button,
@@ -224,6 +229,7 @@ class UserAccount extends Component {
     });
   }
 
+<<<<<<< HEAD
   render() {
     // const { navigation } = this.props;
     const { origFirstName } = this.state;
@@ -233,6 +239,69 @@ class UserAccount extends Component {
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
+=======
+    render() {
+
+        const navigation = this.props.navigation;
+
+        return(
+
+            <View>
+                <Text>User Account Details</Text>
+
+                <View>
+                    <TouchableOpacity
+                        onPress={() => this.logout()}
+                    >
+                    <Text>Log out and go back to Welcome Screen</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <Text></Text>
+
+                <View>
+                    <Text>First name: {this.state.orig_first_name}</Text>
+                    <Text>Last name: {this.state.orig_last_name}</Text>
+                    <Text>Email: {this.state.orig_email}</Text>
+                    <Text></Text>
+                </View>
+
+                <Text></Text>
+
+                    <Text>Update User information</Text>
+
+                    <TextInput
+                        placeholder="Enter new first name..."
+                        onChangeText={(first_name) => this.setState({first_name})}
+                        value={this.state.first_name}
+                    />
+                    <TextInput
+                        placeholder="Enter new last name..."
+                        onChangeText={(last_name) => this.setState({last_name})}
+                        value={this.state.last_name}
+                    />
+                    <TextInput
+                        placeholder="Enter new email..."
+                        onChangeText={(email) => this.setState({email})}
+                        value={this.state.email}
+                    />
+                    <TextInput
+                        placeholder="Enter new password..."
+                        onChangeText={(password) => this.setState({password})}
+                        value={this.state.password}
+                        secureTextEntry
+                    />
+                    <Button
+                        title="Update"
+                        onPress={() => this.updateItem()}
+                    />
+
+            </View>
+
+            
+
+        );
+>>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
 
     if(this.state.isLoading) {
       return (

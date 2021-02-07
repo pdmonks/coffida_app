@@ -5,9 +5,15 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+<<<<<<< HEAD
 import Home from './home-screen';
 import Locations from './locations-screen';
 import MyLocation from './mylocation-screen';
+=======
+import HomeScreen from './home-screen';
+import LocationsScreen from './locations-screen';
+import MyLocationScreen from './mylocation-screen'
+>>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
 import UserAccount from './user-account';
 
 const Tab = createBottomTabNavigator();
@@ -44,9 +50,15 @@ class HomeNav extends Component {
           }}
         >
 
+<<<<<<< HEAD
           <Tab.Screen name="Home" component={Home}/>
           <Tab.Screen name="Locations" component={Locations}/>
           <Tab.Screen name="My Location" component={MyLocation}/>
+=======
+          <Tab.Screen name="Home" component={HomeScreen}/>
+          <Tab.Screen name="Locations" component={LocationsScreen}/>
+          <Tab.Screen name="My Location" component={MyLocationScreen}/>
+>>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
           <Tab.Screen name="User Account" component={UserAccount}/>
         </Tab.Navigator>
 
