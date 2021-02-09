@@ -24,7 +24,7 @@ class LocationNav extends Component {
     return (
 
         <LocationStack.Navigator>
-          <LocationStack.Screen name="Location" component={Location} options={{headerShown: false}}/>
+          <LocationStack.Screen name="Location" component={Location} options={{headerShown: true}}/>
           <LocationStack.Screen name="ReviewCreate" component={ReviewCreate} options={{headerShown: false}}/>
           <LocationStack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{headerShown: false}}/>
           <LocationStack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{headerShown: false}}/>

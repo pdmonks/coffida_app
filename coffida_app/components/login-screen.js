@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { Component } from 'react';
 import {
   Alert, ScrollView, ToastAndroid, Console,
@@ -7,10 +6,6 @@ import {
   Container, Content, Form, Item, Input, Text, Button,
 } from 'native-base';
 import PropTypes from 'prop-types';
-=======
-import React, {Component} from 'react';
-import {Text, TextInput, View, TouchableOpacity, StyleSheet, Alert, ScrollView, ToastAndroid} from 'react-native';
->>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Login extends Component {
@@ -71,11 +66,7 @@ class Login extends Component {
           ToastAndroid.show(error, ToastAndroid.SHORT);
         });
     } else {
-<<<<<<< HEAD
       Alert.alert('Please enter email and password');
-=======
-        Alert.alert("Please enter email and password");
->>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
     }
   }
 
@@ -91,75 +82,6 @@ class Login extends Component {
       console.log(e);
     }
   }
-<<<<<<< HEAD
-=======
-  
-  render() {
-
-    const navigation = this.props.navigation;
-
-    return(
-
-      <View>
-
-        <Text style={styles.title}>Login</Text>
-
-        <ScrollView>
-
-        <View style={StyleSheet.formItem}>
-            <Text style={styles.formLabel}>Email:</Text>
-            <TextInput
-                placeholder="Enter email address..."
-                style={styles.formInput}
-                onChangeText={this.handleEmail}
-                value={this.state.email}
-            />
-        </View>
-
-        <View style={StyleSheet.formItem}>
-            <Text style={styles.formLabel}>Password:</Text>
-            <TextInput
-                placeholder="Enter password..."
-                style={styles.formInput}
-                secureTextEntry
-                onChangeText={this.handlePassword}
-                value={this.state.password}
-            />
-        </View>
-
-        <View style={styles.formItem}>
-            <TouchableOpacity
-                style={styles.formTouch}
-                onPress={() => this.login()}
-            >
-                <Text style={styles.formTouchText}>Log in</Text>
-            </TouchableOpacity>
-        </View>
-
-        <View style={styles.formItem}>
-            <TouchableOpacity
-                style={styles.formTouch}
-                onPress={() => navigation.navigate('NewAccount')}
-            >
-                <Text style={styles.formTouchText}>Create New Account</Text>
-            </TouchableOpacity>
-        </View>
-
-        <View style={styles.formItem}>
-            <TouchableOpacity
-                style={styles.formTouch}
-                onPress={() => navigation.popToTop()}
-            >
-                <Text style={styles.formTouchText}>Back to Welcome Screen</Text>
-            </TouchableOpacity>
-        </View>
-
-        </ScrollView>
-
-      </View>
-
-    );  
->>>>>>> ee5738b163d42583f9843e27f86e350d529cd6f2
 
   checkResponseCode = (status) => {
     console.log(status);

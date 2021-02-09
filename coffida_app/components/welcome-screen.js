@@ -27,7 +27,7 @@ class Welcome extends Component {
   checkLoggedIn = async () => {
     const value = await AsyncStorage.getItem('@token');
     const { navigation } = this.props;
-    // console.log('Token: ' + value);
+    console.log('Token: ' + value);
     if (value == null) {
       navigation.navigate('Login');
       // this.navigation.navigate('Login');
