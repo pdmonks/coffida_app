@@ -17,7 +17,7 @@ class Location extends Component {
       locationTownValue: '',        // location_town
       latitudeValue: 0,             // latitude
       longitudeValue: 0,            // longitude
-      photoPathValue: '',           // photo_path
+      photoPathValue: '',           // photo_path               ** NEED TO IMPLEMENT THIS
       avgOverallRatingValue: 0,     // avg_overall_rating
       avgPriceRatingValue: 0,       // avg_price_rating
       avgQualityRatingValue: 0,     // avg_quality_rating
@@ -275,10 +275,6 @@ class Location extends Component {
 
         <Button block onPress={() => navigation.navigate('ReviewCreate')}>
           <Text>Create a new review</Text>
-        </Button>
-
-        <Button block onPress={() => navigation.navigate('ReviewUpdate')}>
-          <Text>Update an existing review</Text>
         </Button>
 
         <Button block onPress={() => navigation.navigate('ReviewPhoto')}>

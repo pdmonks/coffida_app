@@ -12,8 +12,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 // import UserAccount from './components/user-account';
 import Location from './location-screen';
 import ReviewCreate from './review-create';
-import ReviewUpdate from './review-update';
-import ReviewPhoto from './review-photo';
+import ReviewUpdate from './review-update';       // moved
+import ReviewPhoto from './review-photo';         // moved
 
 const LocationStack = createStackNavigator();
 

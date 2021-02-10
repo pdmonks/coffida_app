@@ -9,6 +9,8 @@ import Login from './components/login-screen';
 import NewAccount from './components/new-account';
 import HomeNav from './components/home';
 import LocationNav from './components/location';
+import ReviewUpdate from './components/review-update';
+import ReviewPhoto from './components/review-photo';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +27,8 @@ class App extends Component {
           <Stack.Screen name="NewAccount" component={NewAccount} options={{ headerShown: false }} />
           <Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
           <Stack.Screen name="LocationNav" component={LocationNav} options={{ headerShown: false }} />
+          <Stack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: false }}/>
+          <Stack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{headerShown: false}}/>
         </Stack.Navigator>
       </NavigationContainer>
 

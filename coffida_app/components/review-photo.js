@@ -1,27 +1,31 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { Component } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
+import { View, Button, StyleSheet, Alert } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 
 class ReviewPhoto extends Component {
-  /* sendToServer = (data) => {
+  sendToServer = async (data) => {
     console.log(data.uri);
-
-    return fetch("http://10.0.2.2:3333/api/1.0.0/location/1/review/7/photo",
+    const token = await AsyncStorage.getItem('@token');
+    const locId = await AsyncStorage.getItem('@reviewLocId');
+    const revId = await AsyncStorage.getItem('@reviewRevId');
+    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId + '/photo',
     {
       method: 'POST',
       headers: {
         "Content-Type": "image/jpeg",
-        "X-Authorization": "3d5b5b4ccb6c52d085d282bdfdf49cf9"
+        "X-Authorization": token,
       },
-      body: data
+      body: data,
     })
     .then((response) => {
-      Alert.alert(response.status);
+      //Alert.alert(response.status);
+      console.log('photo taken');
     })
     .catch((error) => {
       console.error(error);
     });
-  } */
+  }
 
   takePicture = async () => {
     if (this.camera) {
@@ -29,7 +33,7 @@ class ReviewPhoto extends Component {
       const data = await this.camera.takePictureAsync(options);
 
       console.log(data.uri);        // saved on the device
-      // this.sendToServer(data);
+      this.sendToServer(data);
     }
   }
 
