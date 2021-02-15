@@ -6,6 +6,7 @@ import {
   Container, Content, Form, Item, Input, Text, Button,
 } from 'native-base';
 import PropTypes from 'prop-types';
+import { postRequest } from '../src/api/ApiRequests';
 
 class NewAccount extends Component {
   constructor(props) {
@@ -18,24 +19,27 @@ class NewAccount extends Component {
     };
   }
 
-  createAccount() {
-    const { navigation } = this.props;
+  createAccount = async () => {
+    const pathStr = 'user';
+    const contentType = 'application/json';
     const { firstNameValue } = this.state;
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
-    const toSend = {
+    const bodyDataStr = {
       first_name: firstNameValue,
       last_name: lastNameValue,
       email: emailValue,
       password: passwordValue,
     };
-    return fetch('http://10.0.2.2:3333/api/1.0.0/user',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSend),
-      })
+    const bodyData = JSON.stringify(bodyDataStr);
+    this.postAccount(pathStr, contentType, bodyData);
+  }
+
+  postAccount = async (path, type, data) => {
+    const { navigation } = this.props;
+    // const token = null;
+    return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 201) {
           return response.json();
@@ -48,11 +52,10 @@ class NewAccount extends Component {
         }
       })
       .then((responseJson) => {
-        Alert.alert('Account created with ID: ' + responseJson.id + ' !');
+        ToastAndroid.show('Account created with ID: ' + responseJson.id + ' !', ToastAndroid.SHORT);
         navigation.goBack();
       })
       .catch((error) => {
-        // console.error(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }

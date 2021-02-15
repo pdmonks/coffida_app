@@ -4,44 +4,26 @@ import {
   Container, Content, Button, Text, Icon, H1,
 } from 'native-base';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import { checkUserLogin } from '../src/utilities/UtilityFunctions';
 
 class Welcome extends Component {
-  /* constructor(props) {
-    super(props);
-    this.state = {
-      name: '',
-    };
-  } */
-
-  /* componentDidMount() {
-    this.unsubscribe = this.props.navigation.addListener('focus', () => {
-      this.checkLoggedIn();
-    });
-  } */
-
-  /* componentWillUnmount() {
-    this.unsubscribe();
-  } */
-
   checkLoggedIn = async () => {
-    const value = await AsyncStorage.getItem('@token');
     const { navigation } = this.props;
-    console.log('Token: ' + value);
-    if (value == null) {
+    /* const token = await getAsyncItem('@token');
+    const { navigation } = this.props;
+    if (token == null) {
       navigation.navigate('Login');
-      // this.navigation.navigate('Login');
     } else {
       navigation.navigate('HomeNav');
-      // this.navigation.navigate('HomeNav');
+    } */
+    console.log('** Welcome Screen **');
+    if (!await checkUserLogin(this.props)) {
+      navigation.navigate('Login');
+    } else {
+      navigation.navigate('HomeNav');
     }
   }
-
-  /* unsubscribe() {
-    this.props.navigation.addListener('focus', () => {
-      this.checkLoggedIn();
-    });
-  } */
 
   render() {
     const styles = StyleSheet.create({

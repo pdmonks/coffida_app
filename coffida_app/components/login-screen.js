@@ -1,90 +1,88 @@
 import React, { Component } from 'react';
-import {
-  Alert, ScrollView, ToastAndroid, Console,
-} from 'react-native';
+import { ScrollView, ToastAndroid } from 'react-native';
 import {
   Container, Content, Form, Item, Input, Text, Button,
 } from 'native-base';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+import { postRequest } from '../src/api/ApiRequests';
+import { setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
 
 class Login extends Component {
   constructor(props) {
-    // inherit properties of Component superclass
     super(props);
-
-    // create state fields for email and password
     this.state = {
       emailValue: '',
       passwordValue: '',
     };
   }
 
-  // handle email input
   handleEmail = (emailInput) => {
     this.setState({ emailValue: emailInput });
   }
 
-  // handle password input
   handlePassword = (passwordInput) => {
     this.setState({ passwordValue: passwordInput });
   }
 
-  // handles login attempt
-  login = () => {
-    const { navigation } = this.props;
+  handleLogin = () => {
+    const pathStr = 'user/login';
+    const contentType = 'application/json';
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
     if (emailValue.trim().length > 0 && passwordValue.trim().length > 0) {
-      const toSend = {
+      const bodyDataStr = {
         email: emailValue,
         password: passwordValue,
       };
-      fetch('http://10.0.2.2:3333/api/1.0.0/user/login', // 'return' keyword deleted from the start of this line
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(toSend),
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            return response.json();
-          } else if (response.status === 400) {
-            throw 'Incorrect login details, please try again';
-          } else if (response.status === 500) {
-            throw 'Sorry, we are unable to log you in at the moment, please try again later';
-          } else {
-            throw 'There was a problem, please try again later';
-          }
-        })
-        .then((responseJson) => {
-          this.saveName(responseJson.id, responseJson.token);
-          navigation.navigate('HomeNav');
-        })
-        .catch((error) => {
-          // console.error(error);
-          ToastAndroid.show(error, ToastAndroid.SHORT);
-        });
+      const bodyData = JSON.stringify(bodyDataStr);
+      this.postLogin(pathStr, contentType, bodyData);
     } else {
-      Alert.alert('Please enter email and password');
+      ToastAndroid.show('Please enter email and password', ToastAndroid.SHORT);
     }
   }
 
-  saveName = async (id, token) => {
+  postLogin = (path, type, data) => {
+    const { navigation } = this.props;
+    // const token = null;
+    return postRequest(path, type, data)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 400) {
+          throw 'Incorrect login details, please try again';
+        } else if (response.status === 500) {
+          throw 'Sorry, we are unable to log you in at the moment, please try again later';
+        } else {
+          throw 'There was a problem, please try again later';
+        }
+      })
+      .then((responseJson) => {
+        return this.saveUser(responseJson.id, responseJson.token);
+        // navigation.navigate('HomeNav');
+      })
+      .then((resp) => {
+        if (resp === 1) {
+          navigation.navigate('HomeNav'); // waits for async storage save before going to home screen
+        }
+      })
+      .catch((error) => {
+        ToastAndroid.show(error, ToastAndroid.SHORT);
+      });
+  }
+
+  saveUser = async (id, token) => {
     try {
-      await AsyncStorage.setItem('@id', id.toString());
-      console.log('ID: ' + id.toString());
-      await AsyncStorage.setItem('@token', token);
-      console.log('Token: ' + token);
-      ToastAndroid.show('ID and token saved!', ToastAndroid.SHORT);
+      // await AsyncStorage.setItem('@id', id.toString());
+      await setAsyncItem('@id', id.toString());
+      // await AsyncStorage.setItem('@token', token);
+      await setAsyncItem('@token', token);
+      return 1;
     } catch (e) {
       console.log('Something broke...');
       console.log(e);
     }
-  }
-
-  checkResponseCode = (status) => {
-    console.log(status);
   }
 
   render() {
@@ -116,7 +114,7 @@ class Login extends Component {
               </Item>
             </Form>
 
-            <Button block onPress={() => this.login()}>
+            <Button block onPress={() => this.handleLogin()}>
               <Text>Log in</Text>
             </Button>
 

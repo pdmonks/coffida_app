@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import { ToastAndroid, View, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Container, Content, Form, Item, Input, Text, Button,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
+import { getRequest, patchRequest, postRequest } from '../src/api/ApiRequests';
+import { checkUserLogin } from '../src/utilities/UtilityFunctions';
+import { getAsyncItem, setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
 
 class UserAccount extends Component {
   constructor(props) {
@@ -23,76 +26,64 @@ class UserAccount extends Component {
     };
   }
 
-  /* componentDidMount() {
-    this.getData();
-  } */
-
   componentDidMount() {
-    this.unsubscribe = this.props.navigation.addListener('focus', () => {
-      this.checkLoggedIn();
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** User Account Screen **');
+      checkUserLogin(this.props);
+      this.getUser();
     });
-    this.getData();
   }
 
   componentWillUnmount() {
     this.unsubscribe();
   }
 
-  checkLoggedIn = async () => {
+  /* checkLoggedIn = async () => {
     const value = await AsyncStorage.getItem('@token');
     const { navigation } = this.props;
-    // console.log('Token: ' + value);
     if (value == null) {
       navigation.navigate('Login');
-      // this.navigation.navigate('Login');
     } else {
       navigation.navigate('HomeNav');
-      // this.navigation.navigate('HomeNav');
     }
-  }
+  } */
 
   // handles logout attempt
   logout = async () => {
+    const pathStr = 'user/logout';
+    const contentType = null;
+    const bodyData = null;
+    this.postLogout(pathStr, contentType, bodyData);
+  }
+
+  postLogout = async (path, type, data) => {
     const { navigation } = this.props;
-    const token = await this.getToken();
-    console.log('logout: ' + token);
-    return fetch('http://10.0.2.2:3333/api/1.0.0/user/logout',
-      {
-        method: 'POST',
-        headers: { 'X-Authorization': token },
-      })
+    // const token = await getAsyncItem('@token');
+    return postRequest(path, type, data)
       .then(async (response) => {
         if (response.status === 200) {
-          // Alert.alert('Logged out: ' + response.status);
           ToastAndroid.show('Logged out: ' + response.status, ToastAndroid.SHORT);
-          await AsyncStorage.setItem('@token', ''); // reset token
-          // navigation.navigate('Welcome');
+          // await AsyncStorage.setItem('@token', ''); // reset token
+          await setAsyncItem('@token', ''); // reset token
         } else if (response.status === 401) {
           throw 'Unauthorised request';
         } else if (response.status === 500) {
           throw 'Server error';
         }
       })
-      /* .then(async (response) => {
-        Alert.alert('Logged out: ' + response.status);
-        await AsyncStorage.setItem('@token', ''); // reset token
-        navigation.navigate('Welcome');
-      }) */
-      // .then(await AsyncStorage.setItem('@token', '')) // reset token
       .then(navigation.navigate('Welcome')) // go back to welcome screen whether or not request is authorised
       .catch((error) => {
-        // console.error(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
-  getToken = async () => {
+  /* getToken = async () => {
     try {
       const readId = await AsyncStorage.getItem('@id');
       const readToken = await AsyncStorage.getItem('@token');
       if (readId !== null && readToken !== null) {
-        // alert("ID: " + readId + " Token: " + readToken);
-        console.log('getName: ' + readToken);
         return readToken;
       }
     } catch (e) {
@@ -103,29 +94,27 @@ class UserAccount extends Component {
   getId = async () => {
     try {
       const readId = await AsyncStorage.getItem('@id');
-      // const readToken = await AsyncStorage.getItem('@token')
       if (readId !== null) {
-        // alert("ID: " + readId + " Token: " + readToken);
-        console.log('getName: ' + readId);
         return readId;
       }
     } catch (e) {
       console.log('Something broke...');
     }
-  }
+  } */
 
-  getData = async () => {
-    const token = await this.getToken();
-    const id = await this.getId();
-    return fetch('http://10.0.2.2:3333/api/1.0.0/user/' + id,
-      {
-        method: 'GET',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+  getUser = async () => {
+    // const userId = await this.getId();
+    const userId = await getAsyncItem('@id');
+    const path = 'user/' + userId;
+    // const token = await this.getToken();
+    // const token = await getAsyncItem('@token');
+    this.setState({ isLoading: true });
+    return getRequest(path)
       .then((response) => {
         if (response.status === 200) {
           return response.json();
-        } else if (response.status === 401) {
+        }
+        if (response.status === 401) {
           throw 'Unauthorised';
         } else if (response.status === 404) {
           throw 'Not found';
@@ -153,7 +142,11 @@ class UserAccount extends Component {
       });
   }
 
-  updateItem = async () => {
+  updateUser = async () => {
+    //const userId = await this.getId();
+    const userId = await getAsyncItem('@id');
+    const pathStr = 'user/' + userId;
+    const contentType = 'application/json';
     const { origFirstName } = this.state;
     const { origLastName } = this.state;
     const { origEmail } = this.state;
@@ -162,44 +155,31 @@ class UserAccount extends Component {
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
-    const toSend = {};
-
-    console.log(emailValue);
+    const bodyDataStr = {};
 
     if (firstNameValue !== origFirstName) {
-      console.log(firstNameValue);
-      toSend['first_name'] = firstNameValue;
+      bodyDataStr['first_name'] = firstNameValue;
     }
     if (lastNameValue !== origLastName) {
-      console.log(lastNameValue);
-      toSend['last_name'] = lastNameValue;
+      bodyDataStr['last_name'] = lastNameValue;
     }
     if (emailValue !== origEmail) {
-      console.log(emailValue);
-      toSend['email'] = (emailValue);
+      bodyDataStr['email'] = (emailValue);
     }
     if (passwordValue !== origPassword) {
-      console.log(passwordValue);
-      toSend['password'] = (passwordValue);
+      bodyDataStr['password'] = (passwordValue);
     }
+    const bodyData = JSON.stringify(bodyDataStr);
+    this.patchUser(pathStr, contentType, bodyData);
+  }
 
-    console.log(toSend);
-
-    const token = await this.getToken();
-    const id = await this.getId();
-
-    return fetch('http://10.0.2.2:3333/api/1.0.0/user/' + id, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Authorization': token,
-      },
-      body: JSON.stringify(toSend),
-    })
+  patchUser = async (path, type, data) => {
+    // const token = await getAsyncItem('@token');
+    return patchRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Updated!', ToastAndroid.SHORT);
-          this.getData();
+          this.getUser();
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -213,19 +193,19 @@ class UserAccount extends Component {
         }
       })
       .catch((error) => {
-        // console.log(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
   unsubscribe() {
-    this.props.navigation.addListener('focus', () => {
-      this.checkLoggedIn();
+    const { navigation } = this.props;
+    navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
     });
   }
 
   render() {
-    // const { navigation } = this.props;
+    const { isLoading } = this.state;
     const { origFirstName } = this.state;
     const { origLastName } = this.state;
     const { origEmail } = this.state;
@@ -234,7 +214,7 @@ class UserAccount extends Component {
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
 
-    if(this.state.isLoading) {
+    if (isLoading) {
       return (
         <View>
           <ActivityIndicator size="large" color="#00ff00" />
@@ -292,7 +272,7 @@ class UserAccount extends Component {
               </Item>
             </Form>
 
-            <Button block onPress={() => this.updateItem()}>
+            <Button block onPress={() => this.updateUser()}>
               <Text>Update</Text>
             </Button>
 
@@ -312,8 +292,6 @@ UserAccount.propTypes = {
   navigation: PropTypes.shape({
     navigate: PropTypes.func.isRequired,
     addListener: PropTypes.func.isRequired,
-    // popToTop: PropTypes.func.isRequired,
-    // goBack: PropTypes.func.isRequired,
   }).isRequired,
 };
 

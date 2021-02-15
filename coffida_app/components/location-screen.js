@@ -6,6 +6,9 @@ import {
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
+import { deleteRequest, getRequest, postRequest } from '../src/api/ApiRequests';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
 
 class Location extends Component {
   constructor(props) {
@@ -26,28 +29,39 @@ class Location extends Component {
     };
   }
 
+  /* componentDidMount() {
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      this.getLocationInfo();
+    });
+  } */
+
   componentDidMount() {
-    this.getLocationInfo();
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** Location Screen **');
+      checkUserLogin(this.props);
+      this.getLocationInfo();
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   getLocationInfo = async () => {
-    const locationId = await AsyncStorage.getItem('@selectedLocationId');
-    console.log(locationId);
-    this.getData(locationId);
-  }
-
-  getData = async (locId) => {
-    const token = await AsyncStorage.getItem('@token');
+    // const locId = await AsyncStorage.getItem('@selectedLocationId');
+    const locId = await getAsyncItem('@selectedLocationId');
+    const path = 'location/' + locId;
+    // const token = await AsyncStorage.getItem('@token');
     this.setState({ isLoading: true });
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId,
-      {
-        method: 'GET',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    return getRequest(path)
       .then((response) => {
         if (response.status === 200) {
           return response.json();
-        } else if (response.status === 404) {
+        }
+        if (response.status === 404) {
           throw 'Not Found';
         } else if (response.status === 500) {
           throw 'Server error';
@@ -78,17 +92,19 @@ class Location extends Component {
   }
 
   likeReview = async (revId) => {
-    console.log('Like: ' + revId);
-    const locId = await AsyncStorage.getItem('@selectedLocationId');
-    const token = await AsyncStorage.getItem('@token');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId + '/like',
-      {
-        method: 'POST',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    // const locId = await AsyncStorage.getItem('@selectedLocationId');
+    const locId = await getAsyncItem('@selectedLocationId');
+    const pathStr = 'location/' + locId + '/review/' + revId + '/like';
+    const contentType = null;
+    const bodyData = null;
+    this.postLike(pathStr, contentType, bodyData);
+  }
+
+  postLike = async (path, type, data) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
-          //return response.json();
           console.log('review liked');
         } else if (response.status === 400) {
           throw 'Bad request';
@@ -102,32 +118,23 @@ class Location extends Component {
           throw 'There was a problem, please try again later';
         }
       })
-      /* .then((responseJson) => {
-        this.setState({
-          isLoading: false,
-          locationIdValue: responseJson.location_id,
-          locationNameValue: responseJson.location_name,
-
-        });
-        // console.log(this.photoPathValue);
-      }) */
       .catch((error) => {
         console.log(error);
       });
   }
 
   unlikeReview = async (revId) => {
-    console.log('Unlike: ' + revId);
-    const locId = await AsyncStorage.getItem('@selectedLocationId');
-    const token = await AsyncStorage.getItem('@token');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId + '/like',
-      {
-        method: 'DELETE',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    // const locId = await AsyncStorage.getItem('@selectedLocationId');
+    const locId = await getAsyncItem('@selectedLocationId');
+    const pathStr = 'location/' + locId + '/review/' + revId + '/like';
+    this.deleteLike(pathStr);
+  }
+
+  deleteLike = async (path) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
-          //return response.json();
           console.log('review unliked');
         } else if (response.status === 400) {
           throw 'Bad request';
@@ -141,33 +148,25 @@ class Location extends Component {
           throw 'There was a problem, please try again later';
         }
       })
-      /* .then((responseJson) => {
-        this.setState({
-          isLoading: false,
-          locationIdValue: responseJson.location_id,
-          locationNameValue: responseJson.location_name,
-
-        });
-        // console.log(this.photoPathValue);
-      }) */
       .catch((error) => {
         console.log(error);
       });
   }
 
   addFavourite = async () => {
-    console.log("fav");
-    const locId = await AsyncStorage.getItem('@selectedLocationId');
-    console.log(locId);
-    const token = await AsyncStorage.getItem('@token');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/favourite',
-      {
-        method: 'POST',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    // const locId = await AsyncStorage.getItem('@selectedLocationId');
+    const locId = await getAsyncItem('@selectedLocationId');
+    const pathStr = 'location/' + locId + '/favourite';
+    const contentType = null;
+    const bodyData = null;
+    this.postFavourite(pathStr, contentType, bodyData);
+  }
+
+  postFavourite = async (path, type, data) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
-          //return response.json();
           console.log('location added to favourites');
         } else if (response.status === 400) {
           throw 'Bad request';
@@ -181,33 +180,23 @@ class Location extends Component {
           throw 'There was a problem, please try again later';
         }
       })
-      /* .then((responseJson) => {
-        this.setState({
-          isLoading: false,
-          locationIdValue: responseJson.location_id,
-          locationNameValue: responseJson.location_name,
-
-        });
-        // console.log(this.photoPathValue);
-      }) */
       .catch((error) => {
         console.log(error);
       });
   }
 
   deleteFavourite = async () => {
-    console.log("unfav");
-    const locId = await AsyncStorage.getItem('@selectedLocationId');
-    console.log(locId);
-    const token = await AsyncStorage.getItem('@token');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/favourite',
-      {
-        method: 'DELETE',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    // const locId = await AsyncStorage.getItem('@selectedLocationId');
+    const locId = await getAsyncItem('@selectedLocationId');
+    const pathStr = 'location/' + locId + '/favourite';
+    this.deleteFavouriteData(pathStr);
+  }
+
+  deleteFavouriteData = async (path) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
-          //return response.json();
           console.log('location removed from favourites');
         } else if (response.status === 400) {
           throw 'Bad request';
@@ -221,15 +210,6 @@ class Location extends Component {
           throw 'There was a problem, please try again later';
         }
       })
-      /* .then((responseJson) => {
-        this.setState({
-          isLoading: false,
-          locationIdValue: responseJson.location_id,
-          locationNameValue: responseJson.location_name,
-
-        });
-        // console.log(this.photoPathValue);
-      }) */
       .catch((error) => {
         console.log(error);
       });
@@ -275,10 +255,6 @@ class Location extends Component {
 
         <Button block onPress={() => navigation.navigate('ReviewCreate')}>
           <Text>Create a new review</Text>
-        </Button>
-
-        <Button block onPress={() => navigation.navigate('ReviewPhoto')}>
-          <Text>Take a photo</Text>
         </Button>
 
         <Button block onPress={() => this.addFavourite()}>

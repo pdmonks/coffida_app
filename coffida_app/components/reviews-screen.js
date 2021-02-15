@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, TouchableOpacity, FlatList, ActivityIndicator, Alert, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Container, Content, Form, Item, Input, Text, Button, Card, CardItem,
 } from 'native-base';
 import PropTypes from 'prop-types';
+import { getRequest } from '../src/api/ApiRequests';
+import { checkUserLogin } from '../src/utilities/UtilityFunctions';
+import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
 
 class Reviews extends Component {
   constructor(props) {
@@ -16,12 +19,19 @@ class Reviews extends Component {
   }
 
   /* componentDidMount() {
-    this.getData();
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      this.getReviews();
+    });
   } */
 
   componentDidMount() {
-    this.unsubscribe = this.props.navigation.addListener('focus', () => {
-      this.getData();
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** Reviews Screen **');
+      checkUserLogin(this.props);
+      this.getReviews();
     });
   }
 
@@ -29,19 +39,18 @@ class Reviews extends Component {
     this.unsubscribe();
   }
 
-  getData = async () => {
-    const userId = await AsyncStorage.getItem('@id');
-    const token = await AsyncStorage.getItem('@token');
+  getReviews = async () => {
+    // const userId = await AsyncStorage.getItem('@id');
+    const userId = await getAsyncItem('@id');
+    const path = 'user/' + userId;
+    // const token = await AsyncStorage.getItem('@token');
     this.setState({ isLoading: true });
-    return fetch('http://10.0.2.2:3333/api/1.0.0/user/' + userId,
-      {
-        method: 'GET',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    return getRequest(path)
       .then((response) => {
         if (response.status === 200) {
           return response.json();
-        } else if (response.status === 404) {
+        }
+        if (response.status === 404) {
           throw 'Not Found';
         } else if (response.status === 500) {
           throw 'Server error';
@@ -54,16 +63,14 @@ class Reviews extends Component {
           isLoading: false,
           userReviews: responseJson.reviews,
         });
-        // console.log(this.photoPathValue);
       })
       .catch((error) => {
-        console.log(error);
+        ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
   updateReview = async (revId, locId, name, town, overall, price, quality, clenliness, body, likes) => {
     const { navigation } = this.props;
-    console.log('update review: ' + revId);
     await AsyncStorage.setItem('@reviewRevId', revId);
     await AsyncStorage.setItem('@reviewLocId', locId);
     await AsyncStorage.setItem('@reviewName', name);
@@ -74,12 +81,10 @@ class Reviews extends Component {
     await AsyncStorage.setItem('@reviewClenlinessRating', clenliness);
     await AsyncStorage.setItem('@reviewBody', body);
     await AsyncStorage.setItem('@reviewLikes', likes);
-    console.log(body);
     navigation.navigate('ReviewUpdate');
   }
 
   render() {
-    const { navigation } = this.props;
     const { isLoading } = this.state;
     const { userReviews } = this.state;
 
@@ -99,7 +104,11 @@ class Reviews extends Component {
           data={userReviews}
           renderItem={({ item }) => (
             <View>
-              <Text>Review ID: {item.review.review_id} </Text>
+              <Text>
+                Review ID:
+                {' '}
+                {item.review.review_id}
+              </Text>
               <Text>Location ID: {item.location.location_id}</Text>
               <Text>Name: {item.location.location_name} </Text>
               <Text>Town: {item.location.location_town} </Text>

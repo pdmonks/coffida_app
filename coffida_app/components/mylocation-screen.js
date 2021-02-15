@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import {
-  Text, View, Alert, PermissionsAndroid, StyleSheet,
+  Text, View, Alert, PermissionsAndroid, StyleSheet, ActivityIndicator,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import Geolocation from 'react-native-geolocation-service';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
 
 async function requestLocationPermission() {
+  let permissionFlag = false;
   try {
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -18,15 +21,16 @@ async function requestLocationPermission() {
       },
     );
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log('You can access location');
-      return true;
+      console.log('Location permission granted');
+      permissionFlag = true;
     } else {
       console.log('Location permission denied');
-      return false;
+      permissionFlag = false;
     }
   } catch(err) {
     console.warn(err);
   }
+  return permissionFlag;
 }
 
 class MyLocation extends Component {
@@ -40,28 +44,32 @@ class MyLocation extends Component {
     this.findCoordinates = this.findCoordinates.bind(this);
   }
 
-  componentDidMount() {
+  /* componentDidMount() {
     this.findCoordinates();
+  } */
+
+  componentDidMount() {
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** My Location Screen **');
+      checkUserLogin(this.props);
+      this.findCoordinates();
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   findCoordinates = () => {
-    console.log('State: ' + this.state);
-    if (!this.state.locationPermission) {
-      console.log('Asking for permission...');
+    const { locationPermission } = this.state;
+    if (!locationPermission) {
+      console.log('Asking for location permission...');
       this.state.locationPermission = requestLocationPermission();
     }
-
-    /* this.setState({
-      location: {
-        longitude: -2.242631,
-        latitude: 53.480759
-      },
-      isLoading: false
-    }) */
-
     Geolocation.getCurrentPosition((position) => {
-      console.log(position);
-      console.log(JSON.stringify(position));
+      console.log('Current position:', position);
       this.setState({
         location: {
           longitude: position.coords.longitude,
@@ -81,35 +89,37 @@ class MyLocation extends Component {
   };
 
   render() {
-    if (this.state.isLoading) {
+    const { isLoading } = this.state;
+    const { location } = this.state;
+
+    if (isLoading) {
       return (
         <View>
-          <Text>Loading...</Text>
+          <ActivityIndicator size="large" color="#00ff00" />
         </View>
       );
-    } else {
+    }
     return (
       <View style={styles.container}>
         <MapView
-          provider={PROVIDER_GOOGLE}  // remove if not using Google Maps
+          provider={PROVIDER_GOOGLE} // remove if not using Google Maps
           style={styles.map}
           region={{
-            latitude: this.state.location.latitude,
-            longitude: this.state.location.longitude,
+            latitude: location.latitude,
+            longitude: location.longitude,
             latitudeDelta: 0.002,
             longitudeDelta: 0.002,
           }}
         >
           <Marker
-            coordinate={this.state.location}
+            coordinate={location}
             title="My location"
             description="Here I am"
           />
         </MapView>
-          
+
       </View>
-      );  
-    }
+    );
   }
 }
 
@@ -121,5 +131,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+MyLocation.propTypes = {
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+    addListener: PropTypes.func.isRequired,
+  }).isRequired,
+};
 
 export default MyLocation;

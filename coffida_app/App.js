@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -14,10 +14,8 @@ import ReviewPhoto from './components/review-photo';
 
 const Stack = createStackNavigator();
 
-class App extends Component {
-
+class App extends PureComponent {
   render() {
-
     return (
 
       <NavigationContainer>
@@ -27,15 +25,13 @@ class App extends Component {
           <Stack.Screen name="NewAccount" component={NewAccount} options={{ headerShown: false }} />
           <Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
           <Stack.Screen name="LocationNav" component={LocationNav} options={{ headerShown: false }} />
-          <Stack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: false }}/>
-          <Stack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{headerShown: false}}/>
+          <Stack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: false }} />
+          <Stack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
 
     );
-
   }
-
 }
 
 export default App;

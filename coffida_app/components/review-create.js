@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, ScrollView, Alert, ToastAndroid } from 'react-native';
+import { ScrollView, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Container, Content, Form, Item, Input, Text, Button, Label,
 } from 'native-base';
 import PropTypes from 'prop-types';
+import { postRequest } from '../src/api/ApiRequests';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
 
 class ReviewCreate extends Component {
   constructor(props) {
@@ -18,36 +21,27 @@ class ReviewCreate extends Component {
     };
   }
 
-  createReview = async () => {
+  componentDidMount() {
     const { navigation } = this.props;
-    const { overallRatingValue } = this.state;
-    const { priceRatingValue } = this.state;
-    const { qualityRatingValue } = this.state;
-    const { clenlinessRatingValue } = this.state;
-    const { reviewBodyValue } = this.state;
-    const toSend = {
-      overall_rating: parseInt(overallRatingValue),
-      price_rating: parseInt(priceRatingValue),
-      quality_rating: parseInt(qualityRatingValue),
-      clenliness_rating: parseInt(clenlinessRatingValue),
-      review_body: reviewBodyValue,
-    };
-    const locId = await AsyncStorage.getItem('@selectedLocationId');
-    const token = await AsyncStorage.getItem('@token');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Authorization': token,
-        },
-        body: JSON.stringify(toSend),
-      })
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** Review Create Screen **');
+      checkUserLogin(this.props);
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  postReview = async (path, type, data) => {
+    const { navigation } = this.props;
+    // const token = await AsyncStorage.getItem('@token');
+    return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 201) {
           ToastAndroid.show('Review created!', ToastAndroid.SHORT);
           navigation.navigate('Location');
-          //return response.json();
         } else if (response.status === 400) {
           throw 'Invalid details entered, please try again';
         } else if (response.status === 500) {
@@ -56,31 +50,36 @@ class ReviewCreate extends Component {
           throw 'There was a problem, please try again later';
         }
       })
-      // .then((responseJson) => {
-      // console.log('baby');
-      // Alert.alert('Review created with ID: ' + responseJson.id + ' !');
-      // navigation.goBack();
-      // })
       .catch((error) => {
-        // console.error(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
-  async submitReview() {
+  submitReview = async () => {
+    // const locId = await AsyncStorage.getItem('@selectedLocationId');
+    const locId = await getAsyncItem('@selectedLocationId');
+    const pathStr = 'location/' + locId + '/review';
+    const contentType = 'application/json';
+    let bodyDataStr = '';
     const { overallRatingValue } = this.state;
     const { priceRatingValue } = this.state;
     const { qualityRatingValue } = this.state;
     const { clenlinessRatingValue } = this.state;
     const { reviewBodyValue } = this.state;
-    console.log(overallRatingValue);
     if ((overallRatingValue >= 0 && overallRatingValue <= 5)
       && (priceRatingValue >= 0 && priceRatingValue <= 5)
       && (qualityRatingValue >= 0 && qualityRatingValue <= 5)
       && (clenlinessRatingValue >= 0 && clenlinessRatingValue <= 5)
       && (reviewBodyValue !== '')) {
-      console.log('yo');
-      this.createReview();
+      bodyDataStr = {
+        overall_rating: parseInt(overallRatingValue),
+        price_rating: parseInt(priceRatingValue),
+        quality_rating: parseInt(qualityRatingValue),
+        clenliness_rating: parseInt(clenlinessRatingValue),
+        review_body: reviewBodyValue,
+      };
+      const bodyData = JSON.stringify(bodyDataStr);
+      this.postReview(pathStr, contentType, bodyData);
     } else {
       console.log('missing data');
     }

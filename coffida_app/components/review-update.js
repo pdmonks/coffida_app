@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, ScrollView, ToastAndroid, Image } from 'react-native';
+import { ScrollView, ToastAndroid, Image, View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Container, Content, Form, Item, Input, Text, Button, Label,
 } from 'native-base';
 import PropTypes from 'prop-types';
+import { deleteRequest, getRequest, patchRequest } from '../src/api/ApiRequests';
+import { checkUserLogin } from '../src/utilities/UtilityFunctions';
 
 class ReviewUpdate extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      isLoading: false, // set this back to true when get request put back in
       nameValue: '',
       townValue: '',
       origOverallRating: '',
@@ -26,9 +29,30 @@ class ReviewUpdate extends Component {
     };
   }
 
+  /* componentDidMount() {
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      this.loadScreen();
+    });
+  } */
+
+  componentDidMount() {
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** Review Update Screen **');
+      checkUserLogin(this.props);
+      this.loadScreen();
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
   // can retrieve review data from storage rather than db, as only the user can update
-  componentDidMount = async () => {
-    console.log('here');
+  // but probably need to change to get data from db as needed when screen is refreshed??
+  loadScreen = async () => {
     this.setState({
       nameValue: await AsyncStorage.getItem('@reviewName'),
       townValue: await AsyncStorage.getItem('@reviewTown'),
@@ -47,20 +71,14 @@ class ReviewUpdate extends Component {
   }
 
   getPhoto = async () => {
-    console.log('photo');
-    const token = await AsyncStorage.getItem('@token');
     const locId = await AsyncStorage.getItem('@reviewLocId');
     const revId = await AsyncStorage.getItem('@reviewRevId');
-    // this.setState({ isLoading: true });
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId + '/photo',
-      {
-        method: 'GET',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    const path = 'location/' + locId + '/review/' + revId + '/photo';
+    // const token = await AsyncStorage.getItem('@token');
+    // this.setState({ isLoading: true });  // PUT THIS BACK IN WHEN GET REQUEST DONE
+    return getRequest(path)
       .then((response) => {
         if (response.status === 200) {
-          console.log('got photo');
-          //return response.json();
           return response;
         } else if (response.status === 404) {
           throw 'Not Found';
@@ -71,12 +89,10 @@ class ReviewUpdate extends Component {
         }
       })
       .then((responsePhoto) => {
-        console.log(responsePhoto.url);
         this.setState({
           photoPath: responsePhoto.url,
           isLoading: false,
         });
-        // console.log(this.photoPathValue);
       })
       .catch((error) => {
         console.log(error);
@@ -84,6 +100,10 @@ class ReviewUpdate extends Component {
   }
 
   updateReview = async () => {
+    const locId = await AsyncStorage.getItem('@reviewLocId');
+    const revId = await AsyncStorage.getItem('@reviewRevId');
+    const pathStr = 'location/' + locId + '/review/' + revId;
+    const contentType = 'application/json';
     const { origOverallRating } = this.state;
     const { origPriceRating } = this.state;
     const { origQualityRating } = this.state;
@@ -94,45 +114,35 @@ class ReviewUpdate extends Component {
     const { qualityRatingValue } = this.state;
     const { clenlinessRatingValue } = this.state;
     const { reviewBodyValue } = this.state;
-    const toSend = {};
+    const bodyDataStr = {};
 
     if (overallRatingValue !== origOverallRating) {
-      toSend['overall_rating'] = parseInt(overallRatingValue);
+      bodyDataStr['overall_rating'] = parseInt(overallRatingValue);
       await AsyncStorage.setItem('@reviewOverallRating', overallRatingValue);
     }
     if (priceRatingValue !== origPriceRating) {
-      toSend['price_rating'] = parseInt(priceRatingValue);
+      bodyDataStr['price_rating'] = parseInt(priceRatingValue);
       await AsyncStorage.setItem('@reviewPriceRating', priceRatingValue);
     }
     if (qualityRatingValue !== origQualityRating) {
-      toSend['quality_rating'] = parseInt(qualityRatingValue);
+      bodyDataStr['quality_rating'] = parseInt(qualityRatingValue);
       await AsyncStorage.setItem('@reviewQualityRating', qualityRatingValue);
     }
     if (clenlinessRatingValue !== origClenlinessRating) {
-      toSend['clenliness_rating'] = parseInt(clenlinessRatingValue);
+      bodyDataStr['clenliness_rating'] = parseInt(clenlinessRatingValue);
       await AsyncStorage.setItem('@reviewClenlinessRating', clenlinessRatingValue);
     }
     if (reviewBodyValue !== origReviewBody) {
-      toSend['review_body'] = reviewBodyValue;
+      bodyDataStr['review_body'] = reviewBodyValue;
       await AsyncStorage.setItem('@reviewBody', reviewBodyValue);
     }
-
-    this.updateData(toSend);
+    const bodyData = JSON.stringify(bodyDataStr);
+    this.patchReview(pathStr, contentType, bodyData);
   }
 
-  updateData = async (toSend) => {
-    console.log(toSend);
-    const token = await AsyncStorage.getItem('@token');
-    const locId = await AsyncStorage.getItem('@reviewLocId');
-    const revId = await AsyncStorage.getItem('@reviewRevId');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Authorization': token,
-      },
-      body: JSON.stringify(toSend),
-    })
+  patchReview = async (path, type, data) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return patchRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Updated!', ToastAndroid.SHORT);
@@ -150,22 +160,20 @@ class ReviewUpdate extends Component {
         }
       })
       .catch((error) => {
-        // console.log(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
   deleteReview = async () => {
-    const token = await AsyncStorage.getItem('@token');
     const locId = await AsyncStorage.getItem('@reviewLocId');
     const revId = await AsyncStorage.getItem('@reviewRevId');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Authorization': token,
-      },
-    })
+    const pathStr = 'location/' + locId + '/review/' + revId;
+    this.deleteReviewData(pathStr);
+  }
+
+  deleteReviewData = async (path) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Deleted!', ToastAndroid.SHORT);
@@ -183,7 +191,6 @@ class ReviewUpdate extends Component {
         }
       })
       .catch((error) => {
-        // console.log(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
@@ -194,16 +201,15 @@ class ReviewUpdate extends Component {
   }
 
   deletePhoto = async () => {
-    const token = await AsyncStorage.getItem('@token');
     const locId = await AsyncStorage.getItem('@reviewLocId');
     const revId = await AsyncStorage.getItem('@reviewRevId');
-    return fetch('http://10.0.2.2:3333/api/1.0.0/location/' + locId + '/review/' + revId + 'photo', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Authorization': token,
-      },
-    })
+    const pathStr = 'location/' + locId + '/review/' + revId + '/photo';
+    this.deletePhotoData(pathStr);
+  }
+
+  deletePhotoData = async (path) => {
+    // const token = await AsyncStorage.getItem('@token');
+    return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Deleted!', ToastAndroid.SHORT);
@@ -221,13 +227,13 @@ class ReviewUpdate extends Component {
         }
       })
       .catch((error) => {
-        // console.log(error);
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
   render() {
     const { navigation } = this.props;
+    const { isLoading } = this.state;
     const { nameValue } = this.state;
     const { townValue } = this.state;
     const { overallRatingValue } = this.state;
@@ -235,6 +241,14 @@ class ReviewUpdate extends Component {
     const { qualityRatingValue } = this.state;
     const { clenlinessRatingValue } = this.state;
     const { reviewBodyValue } = this.state;
+
+    if (isLoading) {
+      return (
+        <View>
+          <ActivityIndicator size="large" color="#00ff00" />
+        </View>
+      );
+    }
 
     return (
 

@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import {
   View, TouchableOpacity, FlatList, ActivityIndicator, Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Container, Content, Form, Item, Input, Text, Button, Header, Label,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
+import { getRequest } from '../src/api/ApiRequests';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import { setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
 
 class Locations extends Component {
   constructor(props) {
@@ -26,39 +29,47 @@ class Locations extends Component {
     };
   }
 
+  /* componentDidMount() {
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      this.filteredLocationList();
+    });
+  } */
+
   componentDidMount() {
-    //this.getData();
-    this.filteredLocationList();
+    const { navigation } = this.props;
+    this.unsubscribe = navigation.addListener('focus', () => {
+      // this.checkLoggedIn();
+      console.log('** Locations Screen **');
+      checkUserLogin(this.props);
+      this.filteredLocationList();
+    });
   }
 
-  getToken = async () => {
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  /* getToken = async () => {
     try {
-      // const readId = await AsyncStorage.getItem('@id');
       const readToken = await AsyncStorage.getItem('@token');
       if (readToken !== null) {
-        // alert("ID: " + readId + " Token: " + readToken);
-        console.log('getToken: ' + readToken);
         return readToken;
       }
     } catch (e) {
       console.log('Something broke...');
     }
-  }
+  } */
 
-  getData = async (pList) => {
-    const token = await this.getToken();
+  getLocations = async (path) => {
+    // const token = await this.getToken();
     this.setState({ isLoading: true });
-    // const param = pList;
-    // console.log(param);
-    return fetch('http://10.0.2.2:3333/api/1.0.0/find/' + pList,
-      {
-        method: 'GET',
-        headers: { 'X-Authorization': token },
-      }) // need to code IS LOADING
+    return getRequest(path)
       .then((response) => {
         if (response.status === 200) {
           return response.json();
-        } else if (response.status === 400) {
+        }
+        if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
           throw 'Unauthorised';
@@ -80,7 +91,7 @@ class Locations extends Component {
   }
 
   async filteredLocationList() {
-    let parameterList = '?';
+    let pathStr = 'find/?';
     const { qValue } = this.state;
     const { overallRatingValue } = this.state;
     const { priceRatingValue } = this.state;
@@ -90,35 +101,35 @@ class Locations extends Component {
     const { limitValue } = this.state;
 
     if (qValue !== '') {
-      parameterList += 'q=' + qValue + '&';
+      pathStr += 'q=' + qValue + '&';
     }
     if (overallRatingValue !== '') {
-      parameterList += 'overall_rating=' + overallRatingValue + '&';
+      pathStr += 'overall_rating=' + overallRatingValue + '&';
     }
     if (priceRatingValue !== '') {
-      parameterList += 'price_rating=' + priceRatingValue + '&';
+      pathStr += 'price_rating=' + priceRatingValue + '&';
     }
     if (qualityRatingValue !== '') {
-      parameterList += 'quality_rating=' + qualityRatingValue + '&';
+      pathStr += 'quality_rating=' + qualityRatingValue + '&';
     }
     if (clenlinessRatingValue !== '') {
-      parameterList += 'clenliness_rating=' + clenlinessRatingValue + '&';
+      pathStr += 'clenliness_rating=' + clenlinessRatingValue + '&';
     }
     if (searchInValue !== '') {
-      parameterList += 'search_in=' + searchInValue + '&';
+      pathStr += 'search_in=' + searchInValue + '&';
     }
     if (limitValue !== '') {
-      parameterList += 'limit=' + limitValue + '&';
+      pathStr += 'limit=' + limitValue + '&';
     }
-    console.log(parameterList.substring(0, (parameterList.length - 1)));
-    this.getData(parameterList.substring(0, (parameterList.length - 1))); // remove last '?' from string
+    // remove '?' or last '&' from string
+    pathStr = pathStr.substring(0, (pathStr.length - 1));
+    this.getLocations(pathStr);
   }
 
   async selectLocation(id) {
     const { navigation } = this.props;
-    // Alert.alert(id);
-    console.log('Selected Location ID: ' + id);
-    await AsyncStorage.setItem('@selectedLocationId', id.toString());
+    // await AsyncStorage.setItem('@selectedLocationId', id.toString());
+    await setAsyncItem('@selectedLocationId', id.toString());
     navigation.navigate('LocationNav');
   }
 
@@ -126,7 +137,6 @@ class Locations extends Component {
   // moved flatlist out from content tabs to prevent error warning
 
   render() {
-    const { navigation } = this.props;
     const { isLoading } = this.state;
     const { qValue } = this.state;
     const { overallRatingValue } = this.state;
