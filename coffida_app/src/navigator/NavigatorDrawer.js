@@ -1,0 +1,24 @@
+import 'react-native-gesture-handler';
+
+import React, { PureComponent } from 'react';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+
+import UserAccount from '../components/screens/UserAccount';
+import Reviews from '../components/screens/Reviews';
+
+const Drawer = createDrawerNavigator();
+
+class NavigatorDrawer extends PureComponent {
+  render() {
+    return (
+
+      <Drawer.Navigator>
+        <Drawer.Screen name="My Details" component={UserAccount} options={{ headerShown: true }} />
+        <Drawer.Screen name="My Reviews" component={Reviews} options={{ headerShown: true }} />
+      </Drawer.Navigator>
+
+    );
+  }
+}
+
+export default NavigatorDrawer;

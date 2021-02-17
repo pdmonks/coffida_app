@@ -5,8 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import Location from './location-screen';
 import ReviewCreate from './review-create';
-import ReviewUpdate from './review-update';       // moved
-import ReviewPhoto from './review-photo';         // moved
+// import ReviewUpdate from './review-update';       // moved
+// import ReviewPhoto from './review-photo';         // moved
 
 const LocationStack = createStackNavigator();
 
@@ -17,8 +17,6 @@ class LocationNav extends PureComponent {
       <LocationStack.Navigator>
         <LocationStack.Screen name="Location" component={Location} options={{ headerShown: true }} />
         <LocationStack.Screen name="ReviewCreate" component={ReviewCreate} options={{ headerShown: true }} />
-        <LocationStack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: true }} />
-        <LocationStack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: true }} />
       </LocationStack.Navigator>
 
     );
@@ -26,3 +24,8 @@ class LocationNav extends PureComponent {
 }
 
 export default LocationNav;
+
+/*
+<LocationStack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: true }} />
+<LocationStack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: true }} />
+*/
