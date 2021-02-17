@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Icon, H1, H3 } from 'native-base';
 import PropTypes from 'prop-types';
-import { checkUserLogin } from '../src/utilities/UtilityFunctions';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import { ButtonBlock } from '../src/components/shared/Buttons';
 
 class Home extends Component {
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Home Screen **');
       checkUserLogin(this.props);
     });
@@ -20,24 +21,49 @@ class Home extends Component {
   unsubscribe() {
     const { navigation } = this.props;
     navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
     });
   }
 
   render() {
     const { navigation } = this.props;
 
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      viewOne: {
+        flex: 1,
+        justifyContent: 'flex-end',
+      },
+      viewTwo: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+      },
+    });
+
     return (
 
-      <View>
+      <View style={styles.flexContainer}>
 
-        <Text>CoffiDa Home Screen</Text>
+        <View style={styles.viewOne}>
+          <Icon name="cafe" style={{ fontSize: 75 }} />
+        </View>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Welcome')}
-        >
-          <Text>Temporary back to Welcome Screen</Text>
-        </TouchableOpacity>
+        <View style={styles.viewTwo}>
+          <H1>CoffiDa</H1>
+        </View>
+
+        <View style={styles.viewTwo}>
+          <H3>discover great coffee</H3>
+        </View>
+
+        <View style={styles.viewTwo}>
+          <ButtonBlock buttonFunction={() => navigation.navigate('Welcome')} buttonText="Back to Welcome Screen (temp)" />
+        </View>
 
       </View>
 

@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, Image, FlatList, Alert, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Image, FlatList, ToastAndroid, StyleSheet } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button, Card, CardItem,
+  Container, Text, Card, CardItem, H3,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { deleteRequest, getRequest, postRequest } from '../src/api/ApiRequests';
 import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
 import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import IsLoadingIndicator from '../src/components/shared/IsLoadingIndicator';
+import { ButtonBlock } from '../src/components/shared/Buttons';
 
 class Location extends Component {
   constructor(props) {
@@ -29,17 +30,9 @@ class Location extends Component {
     };
   }
 
-  /* componentDidMount() {
-    const { navigation } = this.props;
-    this.unsubscribe = navigation.addListener('focus', () => {
-      this.getLocationInfo();
-    });
-  } */
-
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Location Screen **');
       checkUserLogin(this.props);
       this.getLocationInfo();
@@ -51,10 +44,8 @@ class Location extends Component {
   }
 
   getLocationInfo = async () => {
-    // const locId = await AsyncStorage.getItem('@selectedLocationId');
     const locId = await getAsyncItem('@selectedLocationId');
     const path = 'location/' + locId;
-    // const token = await AsyncStorage.getItem('@token');
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
@@ -62,9 +53,9 @@ class Location extends Component {
           return response.json();
         }
         if (response.status === 404) {
-          throw 'Not Found';
+          throw 'No locations found';
         } else if (response.status === 500) {
-          throw 'Server error';
+          throw 'Sorry, we could not process your request. Please try again later';
         } else {
           throw 'There was a problem, please try again later';
         }
@@ -87,12 +78,11 @@ class Location extends Component {
         // console.log(this.photoPathValue);
       })
       .catch((error) => {
-        console.log(error);
+        ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
   likeReview = async (revId) => {
-    // const locId = await AsyncStorage.getItem('@selectedLocationId');
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/review/' + revId + '/like';
     const contentType = null;
@@ -101,11 +91,11 @@ class Location extends Component {
   }
 
   postLike = async (path, type, data) => {
-    // const token = await AsyncStorage.getItem('@token');
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
-          console.log('review liked');
+          ToastAndroid.show('Review liked', ToastAndroid.SHORT);
+          this.getLocationInfo();
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -119,19 +109,18 @@ class Location extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
+  // MOVE THIS TO MY REVIEWS
   unlikeReview = async (revId) => {
-    // const locId = await AsyncStorage.getItem('@selectedLocationId');
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/review/' + revId + '/like';
     this.deleteLike(pathStr);
   }
 
   deleteLike = async (path) => {
-    // const token = await AsyncStorage.getItem('@token');
     return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
@@ -149,12 +138,11 @@ class Location extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
   addFavourite = async () => {
-    // const locId = await AsyncStorage.getItem('@selectedLocationId');
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/favourite';
     const contentType = null;
@@ -163,11 +151,10 @@ class Location extends Component {
   }
 
   postFavourite = async (path, type, data) => {
-    // const token = await AsyncStorage.getItem('@token');
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
-          console.log('location added to favourites');
+          ToastAndroid.show('Added to favourite locations', ToastAndroid.SHORT);
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -181,19 +168,18 @@ class Location extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
+  // MOVE THIS TO MY LOCATIONS PAGE
   deleteFavourite = async () => {
-    // const locId = await AsyncStorage.getItem('@selectedLocationId');
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/favourite';
     this.deleteFavouriteData(pathStr);
   }
 
   deleteFavouriteData = async (path) => {
-    // const token = await AsyncStorage.getItem('@token');
     return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
@@ -211,7 +197,7 @@ class Location extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
 
@@ -231,8 +217,6 @@ class Location extends Component {
     const { locationIdValue } = this.state;
     const { locationNameValue } = this.state;
     const { locationTownValue } = this.state;
-    const { latitudeValue } = this.state;
-    const { longitudeValue } = this.state;
     // const { photoPathValue } = this.state;
     const { avgOverallRatingValue } = this.state;
     const { avgPriceRatingValue } = this.state;
@@ -240,74 +224,64 @@ class Location extends Component {
     const { avgClenlinessRatingValue } = this.state;
     const { locationReviews } = this.state;
 
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        alignItems: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 1,
+        alignContent: 'center',
+        alignSelf: 'center',
+      },
+      viewTwo: {
+        flex: 1,
+        borderTopWidth: 1,
+      },
+    });
+
     if (isLoading) {
       return (
-        <View>
-          <ActivityIndicator size="large" color="blue" />
-        </View>
+        <IsLoadingIndicator />
       );
     }
 
     return (
 
-      <Container>
-        <Text>Location</Text>
+      <View style={styles.flexContainer}>
 
-        <Button block onPress={() => navigation.navigate('ReviewCreate')}>
-          <Text>Create a new review</Text>
-        </Button>
-
-        <Button block onPress={() => this.addFavourite()}>
-          <Text>add to favourites</Text>
-        </Button>
-
-        <Button block onPress={() => this.deleteFavourite()}>
-          <Text>delete from favourites</Text>
-        </Button>
-
-        <ScrollView>
-
-          <Text>Location ID: {locationIdValue} </Text>
-          <Text>Name: {locationNameValue} </Text>
-          <Text>Town: {locationTownValue} </Text>
-          <Text>Latitude: {latitudeValue} </Text>
-          <Text>Longitude: {longitudeValue} </Text>
-          <Text>Average Overall Rating: {avgOverallRatingValue} </Text>
-          <Text>Average Price Rating: {avgPriceRatingValue} </Text>
-          <Text>Average Quality Rating: {avgQualityRatingValue} </Text>
-          <Text>Average Cleanliness Rating: {avgClenlinessRatingValue} </Text>
-
-          <Card>
-            <CardItem cardBody>
-              <Image source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }} style={{ width: 100, height: 100 }} />
-            </CardItem>
-          </Card>
-
+        <ScrollView style={styles.viewOne}>
+          <View>
+            <Image source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }} style={{ width: 100, height: 100 }} />
+            <Text>{locationNameValue}, {locationTownValue} {locationIdValue}</Text>
+            <Text>Overall: {avgOverallRatingValue} Price: {avgPriceRatingValue} </Text>
+            <Text>Quality: {avgQualityRatingValue} Cleanliness: {avgClenlinessRatingValue} </Text>
+          </View>
+          <View>
+            <ButtonBlock buttonFunction={() => this.addFavourite()} buttonText="Add to My Favourites" />
+            <ButtonBlock buttonFunction={() => navigation.navigate('ReviewCreate')} buttonText="Post a review" />
+          </View>
         </ScrollView>
 
-        <FlatList
-          data={locationReviews}
-          renderItem={({ item }) => (
-            <View>
-              <Text>Review ID: {item.review_id} </Text>
-              <Text>Overall rating: {item.overall_rating} </Text>
-              <Text>Price rating: {item.price_rating} </Text>
-              <Text>Quality rating: {item.quality_rating} </Text>
-              <Text>Cleanliness rating: {item.clenliness_rating} </Text>
-              <Text>Review body: {item.review_body} </Text>
-              <Text>Likes: {item.likes} </Text>
-              <Button block onPress={() => this.likeReview(item.review_id.toString())}>
-                <Text>Like Review</Text>
-              </Button>
-              <Button block onPress={() => this.unlikeReview(item.review_id.toString())}>
-                <Text>Unlike Review</Text>
-              </Button>
-            </View>
-          )}
-          keyExtractor={({ review_id }, index) => review_id.toString()}
-        />
+        <View style={styles.viewTwo}>
+          <Text>Reviews:</Text>
+          <FlatList
+            data={locationReviews}
+            renderItem={({ item }) => (
+              <Card>
+                <Text>Overall rating {item.overall_rating} Price rating {item.price_rating} </Text>
+                <Text>Quality rating {item.quality_rating} Cleanliness rating {item.clenliness_rating} </Text>
+                <Text>"{item.review_body}" </Text>
+                <Text>Likes: {item.likes} </Text>
+                <ButtonBlock buttonFunction={() => this.likeReview(item.review_id.toString())} buttonText="like review" />
+              </Card>
+            )}
+            keyExtractor={({ review_id }, index) => review_id.toString()}
+          />
+        </View>
 
-      </Container>
+      </View>
 
     );
   }

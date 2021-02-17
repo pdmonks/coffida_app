@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
-import { ScrollView, ToastAndroid } from 'react-native';
+import { ScrollView, ToastAndroid, StyleSheet, View } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button,
+  Form, Text, H1, Icon,
 } from 'native-base';
 import PropTypes from 'prop-types';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { postRequest } from '../src/api/ApiRequests';
 import { setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import FormItem from '../src/components/shared/FormItem';
+import FormItemSecure from '../src/components/shared/FormItemSecure';
+import { ButtonBlock, ButtonLight } from '../src/components/shared/Buttons';
 
 class Login extends Component {
   constructor(props) {
@@ -44,7 +46,6 @@ class Login extends Component {
 
   postLogin = (path, type, data) => {
     const { navigation } = this.props;
-    // const token = null;
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
@@ -60,7 +61,6 @@ class Login extends Component {
       })
       .then((responseJson) => {
         return this.saveUser(responseJson.id, responseJson.token);
-        // navigation.navigate('HomeNav');
       })
       .then((resp) => {
         if (resp === 1) {
@@ -74,9 +74,7 @@ class Login extends Component {
 
   saveUser = async (id, token) => {
     try {
-      // await AsyncStorage.setItem('@id', id.toString());
       await setAsyncItem('@id', id.toString());
-      // await AsyncStorage.setItem('@token', token);
       await setAsyncItem('@token', token);
       return 1;
     } catch (e) {
@@ -90,45 +88,61 @@ class Login extends Component {
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
 
-    return (
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 25,
+        justifyContent: 'flex-end',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 10,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewThree: {
+        flex: 75,
+        //justifyContent: 'space-around',
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+    });
 
-      <Container>
-        <Content>
-          <Text>Login</Text>
+    return (
+      <View style={styles.flexContainer}>
+
+        <View style={styles.viewOne}>
+          <Icon name="cafe" style={{ fontSize: 75 }} />
+        </View>
+
+        <View style={styles.viewTwo}>
+          <H1>Login</H1>
+        </View>
+
+        <View style={styles.viewThree}>
           <ScrollView>
             <Form>
-              <Item>
-                <Input
-                  placeholder="Enter email address..."
-                  onChangeText={this.handleEmail}
-                  value={emailValue}
-                />
-              </Item>
-              <Item last>
-                <Input
-                  placeholder="Enter password..."
-                  secureTextEntry
-                  onChangeText={this.handlePassword}
-                  value={passwordValue}
-                />
-              </Item>
+              <FormItem label="Email" placeholder="Email address" onChangeText={this.handleEmail} value={emailValue} />
+              <FormItemSecure label="Password" placeholder="Password" onChangeText={this.handlePassword} value={passwordValue} />
             </Form>
-
-            <Button block onPress={() => this.handleLogin()}>
-              <Text>Log in</Text>
-            </Button>
-
-            <Button block onPress={() => navigation.navigate('NewAccount')}>
-              <Text>Create New Account</Text>
-            </Button>
-
-            <Button block onPress={() => navigation.popToTop()}>
-              <Text>Back to Welcome Screen</Text>
-            </Button>
+            <Text>{' '}</Text>
+            <ButtonBlock buttonFunction={() => this.handleLogin()} buttonText="Login" />
+            <Text>{' '}</Text>
+            <Text>{' '}</Text>
+            <ButtonLight buttonFunction={() => navigation.navigate('NewAccount')} buttonText="Register a new account" />
+            <Text>{' '}</Text>
+            <ButtonLight buttonFunction={() => navigation.popToTop()} buttonText="Cancel" />
+            <Text>{' '}</Text>
           </ScrollView>
+        </View>
 
-        </Content>
-      </Container>
+      </View>
 
     );
   }

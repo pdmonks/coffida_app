@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import {
-  Text, View, Alert, PermissionsAndroid, StyleSheet, ActivityIndicator,
+  View, Alert, PermissionsAndroid, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Geolocation from 'react-native-geolocation-service';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import IsLoadingIndicator from '../src/components/shared/IsLoadingIndicator';
 
 async function requestLocationPermission() {
   let permissionFlag = false;
@@ -44,14 +45,9 @@ class MyLocation extends Component {
     this.findCoordinates = this.findCoordinates.bind(this);
   }
 
-  /* componentDidMount() {
-    this.findCoordinates();
-  } */
-
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** My Location Screen **');
       checkUserLogin(this.props);
       this.findCoordinates();
@@ -94,9 +90,7 @@ class MyLocation extends Component {
 
     if (isLoading) {
       return (
-        <View>
-          <ActivityIndicator size="large" color="#00ff00" />
-        </View>
+        <IsLoadingIndicator />
       );
     }
     return (

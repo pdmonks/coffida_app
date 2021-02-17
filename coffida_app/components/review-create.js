@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
-import { ScrollView, ToastAndroid } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ScrollView, ToastAndroid, StyleSheet } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button, Label,
+  Container, Content, Text, H1, View
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { postRequest } from '../src/api/ApiRequests';
 import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
 import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import FormReview from '../src/components/shared/FormReview';
+import { ButtonBlock, ButtonLight } from '../src/components/shared/Buttons';
 
 class ReviewCreate extends Component {
   constructor(props) {
@@ -24,7 +25,6 @@ class ReviewCreate extends Component {
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Review Create Screen **');
       checkUserLogin(this.props);
     });
@@ -36,7 +36,6 @@ class ReviewCreate extends Component {
 
   postReview = async (path, type, data) => {
     const { navigation } = this.props;
-    // const token = await AsyncStorage.getItem('@token');
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 201) {
@@ -56,7 +55,6 @@ class ReviewCreate extends Component {
   }
 
   submitReview = async () => {
-    // const locId = await AsyncStorage.getItem('@selectedLocationId');
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/review';
     const contentType = 'application/json';
@@ -93,66 +91,53 @@ class ReviewCreate extends Component {
     const { clenlinessRatingValue } = this.state;
     const { reviewBodyValue } = this.state;
 
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 15,
+        //justifyContent: 'space-around',
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+    });
+
     return (
 
-      <Container>
-        <Content>
-          <Text>Create a Review Screen</Text>
+      <View style={styles.flexContainer}>
+
+        <View style={styles.viewOne}>
+          <H1>Post Your Review</H1>
+        </View>
+
+        <View style={styles.viewTwo}>
           <ScrollView>
-            <Form>
-              <Item fixedLabel>
-                <Label>Overall rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(overallRatingValue) => this.setState({ overallRatingValue })}
-                  value={overallRatingValue}
-                />
-              </Item>
-              <Item fixedLabel>
-                <Label>Price rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(priceRatingValue) => this.setState({ priceRatingValue })}
-                  value={priceRatingValue}
-                />
-              </Item>
-              <Item fixedLabel>
-                <Label>Quality rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(qualityRatingValue) => this.setState({ qualityRatingValue })}
-                  value={qualityRatingValue}
-                />
-              </Item>
-              <Item fixedLabel>
-                <Label>Cleanliness rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })}
-                  value={clenlinessRatingValue}
-                />
-              </Item>
-              <Item last>
-                <Label>Review:</Label>
-                <Input
-                  placeholder="Review text..."
-                  onChangeText={(reviewBodyValue) => this.setState({ reviewBodyValue })}
-                  value={reviewBodyValue}
-                />
-              </Item>
-            </Form>
+            <FormReview
+              onChangeTextOverall={(overallRatingValue) => this.setState({ overallRatingValue })} valueOverall={overallRatingValue}
+              onChangeTextPrice={(priceRatingValue) => this.setState({ priceRatingValue })} valuePrice={priceRatingValue}
+              onChangeTextQuality={(qualityRatingValue) => this.setState({ qualityRatingValue })} valueQuality={qualityRatingValue}
+              onChangeTextClenliness={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })} valueClenliness={clenlinessRatingValue}
+              onChangeTextReview={(reviewBodyValue) => this.setState({ reviewBodyValue })} valueReview={reviewBodyValue}
+              buttonPress={() => this.submitReview()}
+              buttonLabel="Submit Review"
+            />
+            <Text />
+            <ButtonLight buttonFunction={() => navigation.goBack()} buttonText="Cancel" />
 
-            <Button block onPress={() => this.submitReview()}>
-              <Text>Submit review</Text>
-            </Button>
-
-            <Button block onPress={() => navigation.goBack()}>
-              <Text>Cancel</Text>
-            </Button>
           </ScrollView>
+        </View>
 
-        </Content>
-      </Container>
+      </View>
 
     );
   }

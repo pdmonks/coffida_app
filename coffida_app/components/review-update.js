@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
-import { ScrollView, ToastAndroid, Image, View, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ScrollView, ToastAndroid, Image, StyleSheet } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button, Label,
+  Container, Content, Text, View, H1,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { deleteRequest, getRequest, patchRequest } from '../src/api/ApiRequests';
-import { checkUserLogin } from '../src/utilities/UtilityFunctions';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import { getAsyncItem, setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import IsLoadingIndicator from '../src/components/shared/IsLoadingIndicator';
+import FormReview from '../src/components/shared/FormReview';
+import { ButtonBlock, ButtonLight } from '../src/components/shared/Buttons';
 
 class ReviewUpdate extends Component {
   constructor(props) {
@@ -29,17 +32,9 @@ class ReviewUpdate extends Component {
     };
   }
 
-  /* componentDidMount() {
-    const { navigation } = this.props;
-    this.unsubscribe = navigation.addListener('focus', () => {
-      this.loadScreen();
-    });
-  } */
-
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Review Update Screen **');
       checkUserLogin(this.props);
       this.loadScreen();
@@ -51,36 +46,34 @@ class ReviewUpdate extends Component {
   }
 
   // can retrieve review data from storage rather than db, as only the user can update
-  // but probably need to change to get data from db as needed when screen is refreshed??
   loadScreen = async () => {
     this.setState({
-      nameValue: await AsyncStorage.getItem('@reviewName'),
-      townValue: await AsyncStorage.getItem('@reviewTown'),
-      origOverallRating: await AsyncStorage.getItem('@reviewOverallRating'),
-      origPriceRating: await AsyncStorage.getItem('@reviewPriceRating'),
-      origQualityRating: await AsyncStorage.getItem('@reviewQualityRating'),
-      origClenlinessRating: await AsyncStorage.getItem('@reviewClenlinessRating'),
-      origReviewBody: await AsyncStorage.getItem('@reviewBody'),
-      overallRatingValue: await AsyncStorage.getItem('@reviewOverallRating'),
-      priceRatingValue: await AsyncStorage.getItem('@reviewPriceRating'),
-      qualityRatingValue: await AsyncStorage.getItem('@reviewQualityRating'),
-      clenlinessRatingValue: await AsyncStorage.getItem('@reviewClenlinessRating'),
-      reviewBodyValue: await AsyncStorage.getItem('@reviewBody'),
+      nameValue: await getAsyncItem('@reviewName'),
+      townValue: await getAsyncItem('@reviewTown'),
+      origOverallRating: await getAsyncItem('@reviewOverallRating'),
+      origPriceRating: await getAsyncItem('@reviewPriceRating'),
+      origQualityRating: await getAsyncItem('@reviewQualityRating'),
+      origClenlinessRating: await getAsyncItem('@reviewClenlinessRating'),
+      origReviewBody: await getAsyncItem('@reviewBody'),
+      overallRatingValue: await getAsyncItem('@reviewOverallRating'),
+      priceRatingValue: await getAsyncItem('@reviewPriceRating'),
+      qualityRatingValue: await getAsyncItem('@reviewQualityRating'),
+      clenlinessRatingValue: await getAsyncItem('@reviewClenlinessRating'),
+      reviewBodyValue: await getAsyncItem('@reviewBody'),
     });
     this.getPhoto();
   }
 
   getPhoto = async () => {
-    const locId = await AsyncStorage.getItem('@reviewLocId');
-    const revId = await AsyncStorage.getItem('@reviewRevId');
+    const locId = await getAsyncItem('@reviewLocId');
+    const revId = await getAsyncItem('@reviewRevId');
     const path = 'location/' + locId + '/review/' + revId + '/photo';
-    // const token = await AsyncStorage.getItem('@token');
-    // this.setState({ isLoading: true });  // PUT THIS BACK IN WHEN GET REQUEST DONE
     return getRequest(path)
       .then((response) => {
         if (response.status === 200) {
           return response;
         } else if (response.status === 404) {
+          this.setState({photoPath: 'https://reactnative.dev/img/tiny_logo.png'});
           throw 'Not Found';
         } else if (response.status === 500) {
           throw 'Server error';
@@ -100,8 +93,8 @@ class ReviewUpdate extends Component {
   }
 
   updateReview = async () => {
-    const locId = await AsyncStorage.getItem('@reviewLocId');
-    const revId = await AsyncStorage.getItem('@reviewRevId');
+    const locId = await getAsyncItem('@reviewLocId');
+    const revId = await getAsyncItem('@reviewRevId');
     const pathStr = 'location/' + locId + '/review/' + revId;
     const contentType = 'application/json';
     const { origOverallRating } = this.state;
@@ -118,35 +111,33 @@ class ReviewUpdate extends Component {
 
     if (overallRatingValue !== origOverallRating) {
       bodyDataStr['overall_rating'] = parseInt(overallRatingValue);
-      await AsyncStorage.setItem('@reviewOverallRating', overallRatingValue);
+      await setAsyncItem('@reviewOverallRating', overallRatingValue);
     }
     if (priceRatingValue !== origPriceRating) {
       bodyDataStr['price_rating'] = parseInt(priceRatingValue);
-      await AsyncStorage.setItem('@reviewPriceRating', priceRatingValue);
+      await setAsyncItem('@reviewPriceRating', priceRatingValue);
     }
     if (qualityRatingValue !== origQualityRating) {
       bodyDataStr['quality_rating'] = parseInt(qualityRatingValue);
-      await AsyncStorage.setItem('@reviewQualityRating', qualityRatingValue);
+      await setAsyncItem('@reviewQualityRating', qualityRatingValue);
     }
     if (clenlinessRatingValue !== origClenlinessRating) {
       bodyDataStr['clenliness_rating'] = parseInt(clenlinessRatingValue);
-      await AsyncStorage.setItem('@reviewClenlinessRating', clenlinessRatingValue);
+      await setAsyncItem('@reviewClenlinessRating', clenlinessRatingValue);
     }
     if (reviewBodyValue !== origReviewBody) {
       bodyDataStr['review_body'] = reviewBodyValue;
-      await AsyncStorage.setItem('@reviewBody', reviewBodyValue);
+      await setAsyncItem('@reviewBody', reviewBodyValue);
     }
     const bodyData = JSON.stringify(bodyDataStr);
     this.patchReview(pathStr, contentType, bodyData);
   }
 
   patchReview = async (path, type, data) => {
-    // const token = await AsyncStorage.getItem('@token');
     return patchRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Updated!', ToastAndroid.SHORT);
-          // this.getData();
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -165,19 +156,19 @@ class ReviewUpdate extends Component {
   }
 
   deleteReview = async () => {
-    const locId = await AsyncStorage.getItem('@reviewLocId');
-    const revId = await AsyncStorage.getItem('@reviewRevId');
+    const locId = await getAsyncItem('@reviewLocId');
+    const revId = await getAsyncItem('@reviewRevId');
     const pathStr = 'location/' + locId + '/review/' + revId;
     this.deleteReviewData(pathStr);
   }
 
   deleteReviewData = async (path) => {
-    // const token = await AsyncStorage.getItem('@token');
+    const { navigation } = this.props;
     return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Deleted!', ToastAndroid.SHORT);
-          // this.getData();
+          navigation.goBack();
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -201,19 +192,18 @@ class ReviewUpdate extends Component {
   }
 
   deletePhoto = async () => {
-    const locId = await AsyncStorage.getItem('@reviewLocId');
-    const revId = await AsyncStorage.getItem('@reviewRevId');
+    const locId = await getAsyncItem('@reviewLocId');
+    const revId = await getAsyncItem('@reviewRevId');
     const pathStr = 'location/' + locId + '/review/' + revId + '/photo';
     this.deletePhotoData(pathStr);
   }
 
   deletePhotoData = async (path) => {
-    // const token = await AsyncStorage.getItem('@token');
     return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Deleted!', ToastAndroid.SHORT);
-          // this.getData();
+          this.getPhoto();
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -242,92 +232,71 @@ class ReviewUpdate extends Component {
     const { clenlinessRatingValue } = this.state;
     const { reviewBodyValue } = this.state;
 
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 4,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 15,
+        //justifyContent: 'space-around',
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+    });
+
     if (isLoading) {
       return (
-        <View>
-          <ActivityIndicator size="large" color="#00ff00" />
-        </View>
+        <IsLoadingIndicator />
       );
     }
 
     return (
 
-      <Container>
-        <Content>
-          <Text>Update a Review for:</Text>
+      <View style={styles.flexContainer}>
+
+        <View style={styles.viewOne}>
+          <H1>Update Your Review for...</H1>
           <Text>
             {nameValue}
             ,
             {' '}
             {townValue}
           </Text>
-          <Image source={{ uri: this.state.photoPath }} style={{ width: 100, height: 100 }} />
+        </View>
+
+
+
+          <View style={styles.viewTwo}>
           <ScrollView>
-            <Form>
-              <Item fixedLabel>
-                <Label>Overall rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(overallRatingValue) => this.setState({ overallRatingValue })}
-                  value={overallRatingValue}
-                />
-              </Item>
-              <Item fixedLabel>
-                <Label>Price rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(priceRatingValue) => this.setState({ priceRatingValue })}
-                  value={priceRatingValue}
-                />
-              </Item>
-              <Item fixedLabel>
-                <Label>Quality rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(qualityRatingValue) => this.setState({ qualityRatingValue })}
-                  value={qualityRatingValue}
-                />
-              </Item>
-              <Item fixedLabel>
-                <Label>Cleanliness rating: </Label>
-                <Input
-                  placeholder="0 - 5"
-                  onChangeText={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })}
-                  value={clenlinessRatingValue}
-                />
-              </Item>
-              <Item last>
-                <Label>Review:</Label>
-                <Input
-                  placeholder="Review text..."
-                  onChangeText={(reviewBodyValue) => this.setState({ reviewBodyValue })}
-                  value={reviewBodyValue}
-                />
-              </Item>
-            </Form>
+          <Image source={{ uri: this.state.photoPath }} style={{ width: 100, height: 100 }} />
+            <FormReview title="Update Review"
+              onChangeTextOverall={(overallRatingValue) => this.setState({ overallRatingValue })} valueOverall={overallRatingValue}
+              onChangeTextPrice={(priceRatingValue) => this.setState({ priceRatingValue })} valuePrice={priceRatingValue}
+              onChangeTextQuality={(qualityRatingValue) => this.setState({ qualityRatingValue })} valueQuality={qualityRatingValue}
+              onChangeTextClenliness={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })} valueClenliness={clenlinessRatingValue}
+              onChangeTextReview={(reviewBodyValue) => this.setState({ reviewBodyValue })} valueReview={reviewBodyValue}
+              buttonPress={() => this.updateReview()}
+              buttonLabel="Update Review"
+            />
 
-            <Button block onPress={() => this.updateReview()}>
-              <Text>Update review</Text>
-            </Button>
+            <ButtonBlock buttonFunction={() => this.addPhoto()} buttonText="Add/update photo" />
+            <ButtonBlock buttonFunction={() => this.deletePhoto()} buttonText="Delete photo" />
+            <ButtonBlock buttonFunction={() => this.deleteReview()} buttonText="Delete review" />
+            <ButtonLight buttonFunction={() => navigation.goBack()} buttonText="Cancel" />
 
-            <Button block onPress={() => this.addPhoto()}>
-              <Text>Add a photo to this review</Text>
-            </Button>
-
-            <Button block onPress={() => this.deletePhoto()}>
-              <Text>Delete photo</Text>
-            </Button>
-
-            <Button block onPress={() => this.deleteReview()}>
-              <Text>Delete review</Text>
-            </Button>
-
-            <Button block onPress={() => navigation.goBack()}>
-              <Text>Back</Text>
-            </Button>
           </ScrollView>
-        </Content>
-      </Container>
+          </View>
+
+</View>
     );
   }
 }

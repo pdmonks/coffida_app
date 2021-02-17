@@ -2,11 +2,16 @@ import { getAsyncItem } from '../asyncStorage/AsyncUtilities';
 
 const rootUrl = 'http://10.0.2.2:3333/api/1.0.0/';
 
+const getToken = async() => {
+  return await getAsyncItem('@token');
+}
+
 const get = async (endpoint) => {
   const logMsg = 'GET request to: ';
   const fullPath = rootUrl + endpoint;
   console.log(logMsg + fullPath);
-  const token = await getAsyncItem('@token');
+  // const token = await getAsyncItem('@token');
+  const token = await getToken();
   return fetch(fullPath,
     {
       method: 'GET',
@@ -20,7 +25,8 @@ const post = async (endpoint, type, data) => {
   const logMsg = 'POST request to: ';
   const fullPath = rootUrl + endpoint;
   console.log(logMsg + fullPath);
-  const token = await getAsyncItem('@token');
+  // const token = await getAsyncItem('@token');
+  const token = await getToken();
   return fetch(fullPath,
     {
       method: 'POST',
@@ -37,7 +43,8 @@ const patch = async (endpoint, type, data) => {
   const logMsg = 'PATCH request to: ';
   const fullPath = rootUrl + endpoint;
   console.log(logMsg + fullPath);
-  const token = await getAsyncItem('@token');
+  // const token = await getAsyncItem('@token');
+  const token = await getToken();
   return fetch(fullPath,
     {
       method: 'PATCH',
@@ -54,7 +61,8 @@ const remove = async (endpoint) => {
   const logMsg = 'DELETE request to: ';
   const fullPath = rootUrl + endpoint;
   console.log(logMsg + fullPath);
-  const token = await getAsyncItem('@token');
+  // const token = await getAsyncItem('@token');
+  const token = await getToken();
   return fetch(fullPath,
     {
       method: 'DELETE',

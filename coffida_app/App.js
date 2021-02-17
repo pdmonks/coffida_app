@@ -25,8 +25,8 @@ class App extends PureComponent {
           <Stack.Screen name="NewAccount" component={NewAccount} options={{ headerShown: false }} />
           <Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
           <Stack.Screen name="LocationNav" component={LocationNav} options={{ headerShown: false }} />
-          <Stack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: false }} />
-          <Stack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: false }} />
+          <Stack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: true }} />
+          <Stack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: true }} />
         </Stack.Navigator>
       </NavigationContainer>
 

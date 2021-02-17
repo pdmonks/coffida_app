@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, FlatList, ActivityIndicator, Alert, ToastAndroid } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, FlatList, ToastAndroid, StyleSheet } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button, Card, CardItem,
+  Container, Text, Button, H1, Card, CardItem,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { getRequest } from '../src/api/ApiRequests';
-import { checkUserLogin } from '../src/utilities/UtilityFunctions';
-import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
+import { getAsyncItem, setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import IsLoadingIndicator from '../src/components/shared/IsLoadingIndicator';
+import { ButtonBlock } from '../src/components/shared/Buttons';
 
 class Reviews extends Component {
   constructor(props) {
@@ -18,17 +19,9 @@ class Reviews extends Component {
     };
   }
 
-  /* componentDidMount() {
-    const { navigation } = this.props;
-    this.unsubscribe = navigation.addListener('focus', () => {
-      this.getReviews();
-    });
-  } */
-
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Reviews Screen **');
       checkUserLogin(this.props);
       this.getReviews();
@@ -40,10 +33,8 @@ class Reviews extends Component {
   }
 
   getReviews = async () => {
-    // const userId = await AsyncStorage.getItem('@id');
     const userId = await getAsyncItem('@id');
     const path = 'user/' + userId;
-    // const token = await AsyncStorage.getItem('@token');
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
@@ -71,16 +62,16 @@ class Reviews extends Component {
 
   updateReview = async (revId, locId, name, town, overall, price, quality, clenliness, body, likes) => {
     const { navigation } = this.props;
-    await AsyncStorage.setItem('@reviewRevId', revId);
-    await AsyncStorage.setItem('@reviewLocId', locId);
-    await AsyncStorage.setItem('@reviewName', name);
-    await AsyncStorage.setItem('@reviewTown', town);
-    await AsyncStorage.setItem('@reviewOverallRating', overall);
-    await AsyncStorage.setItem('@reviewPriceRating', price);
-    await AsyncStorage.setItem('@reviewQualityRating', quality);
-    await AsyncStorage.setItem('@reviewClenlinessRating', clenliness);
-    await AsyncStorage.setItem('@reviewBody', body);
-    await AsyncStorage.setItem('@reviewLikes', likes);
+    await setAsyncItem('@reviewRevId', revId);
+    await setAsyncItem('@reviewLocId', locId);
+    await setAsyncItem('@reviewName', name);
+    await setAsyncItem('@reviewTown', town);
+    await setAsyncItem('@reviewOverallRating', overall);
+    await setAsyncItem('@reviewPriceRating', price);
+    await setAsyncItem('@reviewQualityRating', quality);
+    await setAsyncItem('@reviewClenlinessRating', clenliness);
+    await setAsyncItem('@reviewBody', body);
+    await setAsyncItem('@reviewLikes', likes);
     navigation.navigate('ReviewUpdate');
   }
 
@@ -88,59 +79,74 @@ class Reviews extends Component {
     const { isLoading } = this.state;
     const { userReviews } = this.state;
 
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 2,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 15,
+        //justifyContent: 'space-around',
+        backgroundColor: '#f5f5f5',
+      },
+    });
+
     if (isLoading) {
       return (
-        <View>
-          <ActivityIndicator size="large" color="blue" />
-        </View>
+        <IsLoadingIndicator />
       );
     }
 
     return (
 
-      <Container>
-        <Text>My Reviews List</Text>
-        <FlatList
-          data={userReviews}
-          renderItem={({ item }) => (
-            <View>
-              <Text>
-                Review ID:
-                {' '}
-                {item.review.review_id}
-              </Text>
-              <Text>Location ID: {item.location.location_id}</Text>
-              <Text>Name: {item.location.location_name} </Text>
-              <Text>Town: {item.location.location_town} </Text>
-              <Text>Overall rating: {item.review.overall_rating} </Text>
-              <Text>Price rating: {item.review.price_rating} </Text>
-              <Text>Quality rating: {item.review.quality_rating} </Text>
-              <Text>Cleanliness rating: {item.review.clenliness_rating} </Text>
-              <Text>Review body: {item.review.review_body} </Text>
-              <Text>Likes: {item.review.likes} </Text>
-              <Button
-                block
-                onPress={() => this.updateReview(
-                  item.review.review_id.toString(),
-                  item.location.location_id.toString(),
-                  item.location.location_name,
-                  item.location.location_town,
-                  item.review.overall_rating.toString(),
-                  item.review.price_rating.toString(),
-                  item.review.quality_rating.toString(),
-                  item.review.clenliness_rating.toString(),
-                  item.review.review_body,
-                  item.review.likes.toString(),
-                )}
-              >
-                <Text>Update Review</Text>
-              </Button>
-            </View>
-          )}
-          keyExtractor={({ review }, index) => review.review_id.toString()}
-        />
+      <View style={styles.flexContainer}>
 
-      </Container>
+        <View style={styles.viewOne}>
+          <H1>My Reviews</H1>
+        </View>
+
+        <View style={styles.viewTwo}>
+          <FlatList
+            data={userReviews}
+            renderItem={({ item }) => (
+              <Card>
+                <Text>{item.location.location_name}, {item.location.location_town} </Text>
+                <Text>Overall {item.review.overall_rating} </Text>
+                <Text>Price {item.review.price_rating} </Text>
+                <Text>Quality {item.review.quality_rating} </Text>
+                <Text>Cleanliness {item.review.clenliness_rating} </Text>
+                <Text>"{item.review.review_body}"</Text>
+                <Text>Likes: {item.review.likes} </Text>
+                <ButtonBlock
+                  buttonFunction={() => this.updateReview(
+                    item.review.review_id.toString(),
+                    item.location.location_id.toString(),
+                    item.location.location_name,
+                    item.location.location_town,
+                    item.review.overall_rating.toString(),
+                    item.review.price_rating.toString(),
+                    item.review.quality_rating.toString(),
+                    item.review.clenliness_rating.toString(),
+                    item.review.review_body,
+                    item.review.likes.toString(),
+                  )}
+                  buttonText="Update Review"
+                />
+              </Card>
+            )}
+            keyExtractor={({ review }, index) => review.review_id.toString()}
+          />
+        </View>
+
+      </View>
 
     );
   }

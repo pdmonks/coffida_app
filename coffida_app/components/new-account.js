@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import {
-  ScrollView, Alert, ToastAndroid,
+  ScrollView, ToastAndroid, StyleSheet, View,
 } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button,
+  Container, Content, Text, Icon, H1, H3,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { postRequest } from '../src/api/ApiRequests';
+import FormUser from '../src/components/shared/FormUser';
+import { ButtonBlock, ButtonLight } from '../src/components/shared/Buttons';
 
 class NewAccount extends Component {
   constructor(props) {
@@ -16,16 +18,34 @@ class NewAccount extends Component {
       lastNameValue: '',
       emailValue: '',
       passwordValue: '',
+      passwordCheckValue: '',
     };
   }
 
-  createAccount = async () => {
-    const pathStr = 'user';
-    const contentType = 'application/json';
+  createAccountCheck = () => {
     const { firstNameValue } = this.state;
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
+    const { passwordCheckValue } = this.state;
+    if (firstNameValue.trim().length > 0
+      && lastNameValue.trim().length > 0
+      && emailValue.trim().length > 0
+      && passwordValue.trim().length > 0
+      && passwordCheckValue.trim().length > 0) {
+      if (passwordValue === passwordCheckValue) {
+        this.createAccount(firstNameValue, lastNameValue, emailValue, passwordValue);
+      } else {
+        ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT);
+      }
+    } else {
+      ToastAndroid.show('Please complete all information', ToastAndroid.SHORT);
+    }
+  }
+
+  createAccount = async (firstNameValue, lastNameValue, emailValue, passwordValue) => {
+    const pathStr = 'user';
+    const contentType = 'application/json';
     const bodyDataStr = {
       first_name: firstNameValue,
       last_name: lastNameValue,
@@ -38,7 +58,6 @@ class NewAccount extends Component {
 
   postAccount = async (path, type, data) => {
     const { navigation } = this.props;
-    // const token = null;
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 201) {
@@ -66,56 +85,55 @@ class NewAccount extends Component {
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
+    const { passwordCheckValue } = this.state;
+
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 9,
+        //justifyContent: 'space-around',
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+    });
 
     return (
 
-      <Container>
-        <Content>
-          <Text>New Account Screen</Text>
+      <View style={styles.flexContainer}>
+
+        <View style={styles.viewOne}>
+          <H1>Register Your Account</H1>
+        </View>
+
+        <View style={styles.viewTwo}>
           <ScrollView>
-            <Form>
-              <Item>
-                <Input
-                  placeholder="Enter first name..."
-                  onChangeText={(firstNameValue) => this.setState({ firstNameValue })}
-                  value={firstNameValue}
-                />
-              </Item>
-              <Item>
-                <Input
-                  placeholder="Enter last name..."
-                  onChangeText={(lastNameValue) => this.setState({ lastNameValue })}
-                  value={lastNameValue}
-                />
-              </Item>
-              <Item>
-                <Input
-                  placeholder="Enter email address..."
-                  onChangeText={(emailValue) => this.setState({ emailValue })}
-                  value={emailValue}
-                />
-              </Item>
-              <Item last>
-                <Input
-                  placeholder="Enter password..."
-                  secureTextEntry
-                  onChangeText={(passwordValue) => this.setState({ passwordValue })}
-                  value={passwordValue}
-                />
-              </Item>
-            </Form>
-
-            <Button block onPress={() => this.createAccount()}>
-              <Text>Submit</Text>
-            </Button>
-
-            <Button block onPress={() => navigation.popToTop()}>
-              <Text>Back to Welcome Screen</Text>
-            </Button>
+            <FormUser
+              onChangeTextFirstName={(firstNameValue) => this.setState({ firstNameValue })} valueFirstName={firstNameValue}
+              onChangeTextLastName={(lastNameValue) => this.setState({ lastNameValue })} valueLastName={lastNameValue}
+              onChangeTextEmail={(emailValue) => this.setState({ emailValue })} valueEmail={emailValue}
+              onChangeTextPassword={(passwordValue) => this.setState({ passwordValue })} valuePassword={passwordValue}
+              onChangeTextPasswordCheck={(passwordCheckValue) => this.setState({ passwordCheckValue })} valuePasswordCheck={passwordCheckValue}
+              buttonPress={() => this.createAccountCheck()}
+              buttonLabel="Submit"
+            />
+            <Text>{''}</Text>
+            <ButtonLight buttonFunction={() => navigation.popToTop()} buttonText="Cancel" />
           </ScrollView>
+        </View>
 
-        </Content>
-      </Container>
+      </View>
+
     );
   }
 }

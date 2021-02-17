@@ -16,9 +16,9 @@ class LocationNav extends PureComponent {
 
       <LocationStack.Navigator>
         <LocationStack.Screen name="Location" component={Location} options={{ headerShown: true }} />
-        <LocationStack.Screen name="ReviewCreate" component={ReviewCreate} options={{ headerShown: false }} />
-        <LocationStack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: false }} />
-        <LocationStack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: false }} />
+        <LocationStack.Screen name="ReviewCreate" component={ReviewCreate} options={{ headerShown: true }} />
+        <LocationStack.Screen name="ReviewUpdate" component={ReviewUpdate} options={{ headerShown: true }} />
+        <LocationStack.Screen name="ReviewPhoto" component={ReviewPhoto} options={{ headerShown: true }} />
       </LocationStack.Navigator>
 
     );

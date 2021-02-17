@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
-import { ToastAndroid, View, ActivityIndicator } from 'react-native';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ToastAndroid, StyleSheet } from 'react-native';
 import {
-  Container, Content, Form, Item, Input, Text, Button,
+  Container, Content, Form, Text, Button, H1, View
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { getRequest, patchRequest, postRequest } from '../src/api/ApiRequests';
-import { checkUserLogin } from '../src/utilities/UtilityFunctions';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
 import { getAsyncItem, setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import IsLoadingIndicator from '../src/components/shared/IsLoadingIndicator';
+import FormUser from '../src/components/shared/FormUser';
+import { ButtonBlock } from '../src/components/shared/Buttons';
 
 class UserAccount extends Component {
   constructor(props) {
@@ -29,7 +31,6 @@ class UserAccount extends Component {
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** User Account Screen **');
       checkUserLogin(this.props);
       this.getUser();
@@ -39,16 +40,6 @@ class UserAccount extends Component {
   componentWillUnmount() {
     this.unsubscribe();
   }
-
-  /* checkLoggedIn = async () => {
-    const value = await AsyncStorage.getItem('@token');
-    const { navigation } = this.props;
-    if (value == null) {
-      navigation.navigate('Login');
-    } else {
-      navigation.navigate('HomeNav');
-    }
-  } */
 
   // handles logout attempt
   logout = async () => {
@@ -60,12 +51,10 @@ class UserAccount extends Component {
 
   postLogout = async (path, type, data) => {
     const { navigation } = this.props;
-    // const token = await getAsyncItem('@token');
     return postRequest(path, type, data)
       .then(async (response) => {
         if (response.status === 200) {
           ToastAndroid.show('Logged out: ' + response.status, ToastAndroid.SHORT);
-          // await AsyncStorage.setItem('@token', ''); // reset token
           await setAsyncItem('@token', ''); // reset token
         } else if (response.status === 401) {
           throw 'Unauthorised request';
@@ -79,35 +68,9 @@ class UserAccount extends Component {
       });
   }
 
-  /* getToken = async () => {
-    try {
-      const readId = await AsyncStorage.getItem('@id');
-      const readToken = await AsyncStorage.getItem('@token');
-      if (readId !== null && readToken !== null) {
-        return readToken;
-      }
-    } catch (e) {
-      console.log('Something broke...')
-    }
-  }
-
-  getId = async () => {
-    try {
-      const readId = await AsyncStorage.getItem('@id');
-      if (readId !== null) {
-        return readId;
-      }
-    } catch (e) {
-      console.log('Something broke...');
-    }
-  } */
-
   getUser = async () => {
-    // const userId = await this.getId();
     const userId = await getAsyncItem('@id');
     const path = 'user/' + userId;
-    // const token = await this.getToken();
-    // const token = await getAsyncItem('@token');
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
@@ -143,7 +106,6 @@ class UserAccount extends Component {
   }
 
   updateUser = async () => {
-    //const userId = await this.getId();
     const userId = await getAsyncItem('@id');
     const pathStr = 'user/' + userId;
     const contentType = 'application/json';
@@ -155,26 +117,41 @@ class UserAccount extends Component {
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
+    const { passwordCheckValue } = this.state;
     const bodyDataStr = {};
+    let cleared = false;
 
-    if (firstNameValue !== origFirstName) {
+    if (firstNameValue !== origFirstName
+      && firstNameValue.trim().length > 0) {
       bodyDataStr['first_name'] = firstNameValue;
+      cleared = true;
     }
-    if (lastNameValue !== origLastName) {
+    if (lastNameValue !== origLastName
+      && lastNameValue.trim().length > 0) {
       bodyDataStr['last_name'] = lastNameValue;
+      cleared = true;
     }
-    if (emailValue !== origEmail) {
+    if (emailValue !== origEmail
+      && emailValue.trim().length > 0) {
       bodyDataStr['email'] = (emailValue);
+      cleared = true;
     }
-    if (passwordValue !== origPassword) {
-      bodyDataStr['password'] = (passwordValue);
+    if (passwordValue !== origPassword
+      && passwordValue.trim().length > 0) {
+      if (passwordValue === passwordCheckValue) {
+        bodyDataStr['password'] = (passwordValue);
+        cleared = true;
+      } else {
+        ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT);
+      }
     }
-    const bodyData = JSON.stringify(bodyDataStr);
-    this.patchUser(pathStr, contentType, bodyData);
+    if (cleared) {
+      const bodyData = JSON.stringify(bodyDataStr);
+      this.patchUser(pathStr, contentType, bodyData);
+    }
   }
 
   patchUser = async (path, type, data) => {
-    // const token = await getAsyncItem('@token');
     return patchRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
@@ -200,7 +177,6 @@ class UserAccount extends Component {
   unsubscribe() {
     const { navigation } = this.props;
     navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
     });
   }
 
@@ -213,76 +189,59 @@ class UserAccount extends Component {
     const { lastNameValue } = this.state;
     const { emailValue } = this.state;
     const { passwordValue } = this.state;
+    const { passwordCheckValue } = this.state;
+
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 2,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 15,
+        //justifyContent: 'space-around',
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+    });
 
     if (isLoading) {
       return (
-        <View>
-          <ActivityIndicator size="large" color="#00ff00" />
-        </View>
+        <IsLoadingIndicator />
       );
     }
 
     return (
 
-      <Container>
-        <Content>
-          <Text>User Account Details</Text>
+      <View style={styles.flexContainer}>
+
+        <View style={styles.viewOne}>
+          <H1>Your Account details</H1>
+        </View>
+
+        <View style={styles.viewTwo}>
           <ScrollView>
-
-            <Text>
-              {origFirstName} {origLastName}
-            </Text>
-            <Text>
-              Email:
-              {origEmail}
-            </Text>
-
-            <Text />
-
-            <Form>
-              <Text>Update User Information</Text>
-              <Item>
-                <Input
-                  placeholder="Enter new first name..."
-                  onChangeText={(firstNameValue) => this.setState({ firstNameValue })}
-                  value={firstNameValue}
-                />
-              </Item>
-              <Item>
-                <Input
-                  placeholder="Enter new last name..."
-                  onChangeText={(lastNameValue) => this.setState({ lastNameValue })}
-                  value={lastNameValue}
-                />
-              </Item>
-              <Item>
-                <Input
-                  placeholder="Enter new email address..."
-                  onChangeText={(emailValue) => this.setState({ emailValue })}
-                  value={emailValue}
-                />
-              </Item>
-              <Item last>
-                <Input
-                  placeholder="Enter new password..."
-                  secureTextEntry
-                  onChangeText={(passwordValue) => this.setState({ passwordValue })}
-                  value={passwordValue}
-                />
-              </Item>
-            </Form>
-
-            <Button block onPress={() => this.updateUser()}>
-              <Text>Update</Text>
-            </Button>
-
-            <Button block onPress={() => this.logout()}>
-              <Text>Log out and go back to Welcome Screen</Text>
-            </Button>
+            <FormUser
+              onChangeTextFirstName={(firstNameValue) => this.setState({ firstNameValue })} valueFirstName={firstNameValue}
+              onChangeTextLastName={(lastNameValue) => this.setState({ lastNameValue })} valueLastName={lastNameValue}
+              onChangeTextEmail={(emailValue) => this.setState({ emailValue })} valueEmail={emailValue}
+              onChangeTextPassword={(passwordValue) => this.setState({ passwordValue })} valuePassword={passwordValue}
+              onChangeTextPasswordCheck={(passwordCheckValue) => this.setState({ passwordCheckValue })} valuePasswordCheck={passwordCheckValue}
+              buttonPress={() => this.updateUser()}
+              buttonLabel="Update"
+            />
+            <ButtonBlock buttonFunction={() => this.logout()} buttonText="Log out and go back to Welcome Screen" />
           </ScrollView>
+        </View>
 
-        </Content>
-      </Container>
+      </View>
 
     );
   }

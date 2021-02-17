@@ -1,18 +1,17 @@
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { Component } from 'react';
-import { View, Button, StyleSheet, ToastAndroid } from 'react-native';
+import { View, StyleSheet, ToastAndroid } from 'react-native';
 import PropTypes from 'prop-types';
 import { RNCamera } from 'react-native-camera';
 import { postRequest } from '../src/api/ApiRequests';
-import { checkUserLogin } from '../src/utilities/UtilityFunctions';
+import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
 import { getAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import { ButtonBlock } from '../src/components/shared/Buttons';
 
 class ReviewPhoto extends Component {
 
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Review Photo Screen **');
       checkUserLogin(this.props);
     });
@@ -24,11 +23,20 @@ class ReviewPhoto extends Component {
 
   postPhoto = async (path, type, data) => {
     const { navigation } = this.props;
-    // const token = await AsyncStorage.getItem('@token');
     return postRequest(path, type, data)
       .then((response) => {
-        ToastAndroid.show('Photo added', ToastAndroid.SHORT);
-        navigation.navigate('ReviewUpdate');
+        if (response.status === 200) {
+          ToastAndroid.show('Photo added', ToastAndroid.SHORT);
+          navigation.navigate('ReviewUpdate');
+        } else if (response.status === 400) {
+          throw 'Bad request';
+        } else if (response.status === 401) {
+          throw 'Unauthorised';
+        } else if (response.status === 404) {
+          throw 'Not found';
+        } else if (response.status === 500) {
+          throw 'Server error';
+        }
       })
       .catch((error) => {
         console.error(error);
@@ -45,9 +53,7 @@ class ReviewPhoto extends Component {
   }
 
   sendToServer = async (bodyData) => {
-    // const locId = await AsyncStorage.getItem('@reviewLocId');
     const locId = await getAsyncItem('@reviewLocId');
-    // const revId = await AsyncStorage.getItem('@reviewRevId');
     const revId = await getAsyncItem('@reviewRevId');
     const pathStr = 'location/' + locId + '/review/' + revId + '/photo';
     const contentType = 'image/jpeg';
@@ -64,7 +70,7 @@ class ReviewPhoto extends Component {
           style={styles.preview}
           captureAudio={false}
         />
-        <Button title="Take Photo" onPress={() => this.takePhoto()} />
+        <ButtonBlock buttonFunction={() => this.takePhoto()} buttonText="Take photo" />
       </View>
     );
   }

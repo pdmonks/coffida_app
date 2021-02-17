@@ -1,16 +1,18 @@
 import React, { Component } from 'react';
 import {
-  View, TouchableOpacity, FlatList, ActivityIndicator, Alert,
+  View, FlatList, StyleSheet,
 } from 'react-native';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  Container, Content, Form, Item, Input, Text, Button, Header, Label,
+  Container, Form, Text, Header, H3, Picker, Item, Icon,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { getRequest } from '../src/api/ApiRequests';
 import { checkUserLogin } from '../src/utilityFunctions/UtilityFunctions';
 import { setAsyncItem } from '../src/asyncStorage/AsyncUtilities';
+import IsLoadingIndicator from '../src/components/shared/IsLoadingIndicator';
+import FormItem from '../src/components/shared/FormItem';
+import { ButtonBlock, ButtonInfo } from '../src/components/shared/Buttons';
 
 class Locations extends Component {
   constructor(props) {
@@ -29,17 +31,9 @@ class Locations extends Component {
     };
   }
 
-  /* componentDidMount() {
-    const { navigation } = this.props;
-    this.unsubscribe = navigation.addListener('focus', () => {
-      this.filteredLocationList();
-    });
-  } */
-
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
-      // this.checkLoggedIn();
       console.log('** Locations Screen **');
       checkUserLogin(this.props);
       this.filteredLocationList();
@@ -50,19 +44,7 @@ class Locations extends Component {
     this.unsubscribe();
   }
 
-  /* getToken = async () => {
-    try {
-      const readToken = await AsyncStorage.getItem('@token');
-      if (readToken !== null) {
-        return readToken;
-      }
-    } catch (e) {
-      console.log('Something broke...');
-    }
-  } */
-
   getLocations = async (path) => {
-    // const token = await this.getToken();
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
@@ -128,7 +110,6 @@ class Locations extends Component {
 
   async selectLocation(id) {
     const { navigation } = this.props;
-    // await AsyncStorage.setItem('@selectedLocationId', id.toString());
     await setAsyncItem('@selectedLocationId', id.toString());
     navigation.navigate('LocationNav');
   }
@@ -146,108 +127,83 @@ class Locations extends Component {
     const { searchInValue } = this.state;
     const { limitValue } = this.state;
 
+    const styles = StyleSheet.create({
+      flexContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewOne: {
+        flex: 2,
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      },
+      viewTwo: {
+        flex: 15,
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+      viewThree: {
+        flex: 5,
+        alignSelf: 'stretch',
+        backgroundColor: '#f5f5f5',
+      },
+      viewFour: {
+        flex: 15,
+        flexDirection: 'row',
+        backgroundColor: '#f5f5f5',
+        borderTopWidth: 1,
+      },
+    });
+
     if (isLoading) {
       return (
-        <View>
-          <ActivityIndicator size="large" color="#00ff00" />
-        </View>
+        <IsLoadingIndicator />
       );
     }
 
     return (
 
-      <Container>
+      <View style={styles.flexContainer}>
 
-        <Header>
-          <Text>Locations List</Text>
-          <Button block onPress={() => this.filteredLocationList()}>
-            <Text>Search for a location</Text>
-          </Button>
-        </Header>
+        <View style={styles.viewOne}>
+          <H3>Coffida Search</H3>
+        </View>
 
-        <ScrollView>
+        <View style={styles.viewTwo}>
+          <ScrollView>
+            <Form>
+              <FormItem label="Name or town" placeholder="Name or location" onChangeText={(qValue) => this.setState({ qValue })} value={qValue} />
+              <FormItem label="Overall rating" placeholder="0 - 5" onChangeText={(overallRatingValue) => this.setState({ overallRatingValue })} value={overallRatingValue} />
+              <FormItem label="Price rating" placeholder="0 - 5" onChangeText={(priceRatingValue) => this.setState({ priceRatingValue })} value={priceRatingValue} />
+              <FormItem label="Quality rating" placeholder="0 - 5" onChangeText={(qualityRatingValue) => this.setState({ qualityRatingValue })} value={qualityRatingValue} />
+              <FormItem label="Cleanliness rating" placeholder="0 - 5" onChangeText={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })} value={clenlinessRatingValue} />
+              <FormItem label="Search in" placeholder="fav or rev" onChangeText={(searchInValue) => this.setState({ searchInValue })} value={searchInValue} />
+              <FormItem label="Limit" placeholder="20" onChangeText={(limitValue) => this.setState({ limitValue })} value={limitValue} />
+            </Form>
+          </ScrollView>
+        </View>
 
-          <Text>Search filters:</Text>
-          <Form>
-            <Item fixedLabel>
-              <Label>Loc. name:</Label>
-              <Input
-                placeholder="Query string..."
-                onChangeText={(qValue) => this.setState({ qValue })}
-                value={qValue}
-              />
-            </Item>
-            <Item fixedLabel>
-              <Label>Overall rating: </Label>
-              <Input
-                placeholder="0 - 5"
-                onChangeText={(overallRatingValue) => this.setState({ overallRatingValue })}
-                value={overallRatingValue}
-              />
-            </Item>
-            <Item>
-              <Label>Price rating:</Label>
-              <Input
-                placeholder="0 - 5"
-                onChangeText={(priceRatingValue) => this.setState({ priceRatingValue })}
-                value={priceRatingValue}
-              />
-            </Item>
-            <Item>
-              <Label>Quality rating:</Label>
-              <Input
-                placeholder="0 - 5"
-                onChangeText={(qualityRatingValue) => this.setState({ qualityRatingValue })}
-                value={qualityRatingValue}
-              />
-            </Item>
-            <Item>
-              <Label>Cleanliness rating:</Label>
-              <Input
-                placeholder="0 - 5"
-                onChangeText={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })}
-                value={clenlinessRatingValue}
-              />
-            </Item>
-            <Item>
-              <Label>Search in:</Label>
-              <Input
-                placeholder="fav or rev"
-                onChangeText={(searchInValue) => this.setState({ searchInValue })}
-                value={searchInValue}
-              />
-            </Item>
-            <Item last>
-              <Label>Limit:</Label>
-              <Input
-                placeholder="20"
-                onChangeText={(limitValue) => this.setState({ limitValue })}
-                value={limitValue}
-              />
-            </Item>
-          </Form>
+        <View style={styles.viewThree}>
+          <ButtonBlock buttonFunction={() => this.filteredLocationList()} buttonText="Search" />
+          <Text>    Search results:</Text>
+        </View>
 
-        </ScrollView>
+        <View style={styles.viewFour}>
+          <FlatList
+            data={this.state.locationListData}
+            renderItem={({ item }) => (
+              <View>
+                <ButtonInfo buttonFunction={() => this.selectLocation(item.location_id.toString())} buttonText={item.location_name + ', ' + item.location_town + item.location_id} />
+              </View>
+            )}
+            keyExtractor={({ location_id }, index) => location_id.toString()}
+          />
+        </View>
 
-        <Text>Search results:</Text>
-
-        <FlatList
-          data={this.state.locationListData}
-          renderItem={({ item }) => (
-            <View>
-              <Text>
-                {item.location_name}
-                {item.location_id}
-              </Text>
-              <Button block onPress={() => this.selectLocation(item.location_id.toString())}>
-                <Text>Select</Text>
-              </Button>
-            </View>
-          )}
-          keyExtractor={({ location_id }, index) => location_id.toString()}
-        />
-
-      </Container>
+      </View>
 
     );
   }

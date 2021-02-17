@@ -1,0 +1,19 @@
+import React, { Component } from 'react';
+import { Item, Input, Label } from 'native-base';
+
+class FormItem extends Component {
+  render() {
+    return (
+      <Item floatingLabel>
+        <Label>{this.props.label}</Label>
+        <Input
+          placeholder={this.props.placeholder}
+          onChangeText={this.props.onChangeText}
+          value={this.props.value}
+        />
+      </Item>
+    );
+  }
+}
+
+export default FormItem;
