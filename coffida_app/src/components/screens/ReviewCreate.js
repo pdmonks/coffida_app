@@ -9,6 +9,8 @@ import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import { getAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import FormReview from '../shared/FormReview';
 import { ButtonBlock, ButtonLight } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
+import { profanityFilter } from '../../utilityFunctions/ProfanityFilter';
 
 class ReviewCreate extends Component {
   constructor(props) {
@@ -54,27 +56,24 @@ class ReviewCreate extends Component {
       });
   }
 
-  submitReview = async () => {
+  submitReview = async (overall, price, quality, clenliness, review) => {
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/review';
     const contentType = 'application/json';
     let bodyDataStr = '';
-    const { overallRatingValue } = this.state;
-    const { priceRatingValue } = this.state;
-    const { qualityRatingValue } = this.state;
-    const { clenlinessRatingValue } = this.state;
-    const { reviewBodyValue } = this.state;
-    if ((overallRatingValue >= 0 && overallRatingValue <= 5)
-      && (priceRatingValue >= 0 && priceRatingValue <= 5)
-      && (qualityRatingValue >= 0 && qualityRatingValue <= 5)
-      && (clenlinessRatingValue >= 0 && clenlinessRatingValue <= 5)
-      && (reviewBodyValue !== '')) {
+    //const reviewFiltered = await profanityFilter(review);
+
+    if ((overall >= 0 && overall <= 5)
+      && (price >= 0 && price <= 5)
+      && (quality >= 0 && quality <= 5)
+      && (clenliness >= 0 && clenliness <= 5)
+      && (review !== '')) {
       bodyDataStr = {
-        overall_rating: parseInt(overallRatingValue),
-        price_rating: parseInt(priceRatingValue),
-        quality_rating: parseInt(qualityRatingValue),
-        clenliness_rating: parseInt(clenlinessRatingValue),
-        review_body: reviewBodyValue,
+        overall_rating: parseInt(overall),
+        price_rating: parseInt(price),
+        quality_rating: parseInt(quality),
+        clenliness_rating: parseInt(clenliness),
+        review_body: await profanityFilter(review),
       };
       const bodyData = JSON.stringify(bodyDataStr);
       this.postReview(pathStr, contentType, bodyData);
@@ -92,35 +91,24 @@ class ReviewCreate extends Component {
     const { reviewBodyValue } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
+      viewTitle: {
         flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewOne: {
-        flex: 1,
-        justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewTwo: {
+      viewForm: {
         flex: 15,
-        //justifyContent: 'space-around',
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
     });
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewTitle}>
           <H1>Post Your Review</H1>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewForm}>
           <ScrollView>
             <FormReview
               onChangeTextOverall={(overallRatingValue) => this.setState({ overallRatingValue })} valueOverall={overallRatingValue}
@@ -128,7 +116,7 @@ class ReviewCreate extends Component {
               onChangeTextQuality={(qualityRatingValue) => this.setState({ qualityRatingValue })} valueQuality={qualityRatingValue}
               onChangeTextClenliness={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })} valueClenliness={clenlinessRatingValue}
               onChangeTextReview={(reviewBodyValue) => this.setState({ reviewBodyValue })} valueReview={reviewBodyValue}
-              buttonPress={() => this.submitReview()}
+              buttonPress={() => this.submitReview(overallRatingValue, priceRatingValue, qualityRatingValue, clenlinessRatingValue, reviewBodyValue)}
               buttonLabel="Submit Review"
             />
             <Text />

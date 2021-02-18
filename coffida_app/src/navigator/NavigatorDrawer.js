@@ -5,6 +5,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import UserAccount from '../components/screens/UserAccount';
 import Reviews from '../components/screens/Reviews';
+import LocationsFavourite from '../components/screens/LocationsFavourite';
 
 const Drawer = createDrawerNavigator();
 
@@ -15,6 +16,7 @@ class NavigatorDrawer extends PureComponent {
       <Drawer.Navigator>
         <Drawer.Screen name="My Details" component={UserAccount} options={{ headerShown: true }} />
         <Drawer.Screen name="My Reviews" component={Reviews} options={{ headerShown: true }} />
+        <Drawer.Screen name="My Locations" component={LocationsFavourite} options={{ headerShown: true }} />
       </Drawer.Navigator>
 
     );

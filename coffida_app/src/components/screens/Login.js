@@ -9,6 +9,8 @@ import { setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import FormItem from '../shared/FormItem';
 import FormItemSecure from '../shared/FormItemSecure';
 import { ButtonBlock, ButtonLight } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
+import { requestStatusMessage } from '../../api/ApiStatus';
 
 class Login extends Component {
   constructor(props) {
@@ -48,15 +50,14 @@ class Login extends Component {
     const { navigation } = this.props;
     return postRequest(path, type, data)
       .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        }
-        if (response.status === 400) {
-          throw 'Incorrect login details, please try again';
-        } else if (response.status === 500) {
-          throw 'Sorry, we are unable to log you in at the moment, please try again later';
+        if (response.status !== 200) {
+          if (response.status === 400) {
+            throw 'Incorrect login details, please try again';
+          } else {
+            throw requestStatusMessage(response.status);
+          }
         } else {
-          throw 'There was a problem, please try again later';
+          return response.json();
         }
       })
       .then((responseJson) => {
@@ -89,43 +90,31 @@ class Login extends Component {
     const { passwordValue } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewOne: {
+      viewIcon: {
         flex: 25,
         justifyContent: 'flex-end',
-        backgroundColor: '#f5f5f5',
       },
-      viewTwo: {
+      viewTitle: {
         flex: 10,
-        justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewThree: {
+      viewForm: {
         flex: 75,
-        //justifyContent: 'space-around',
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
     });
 
     return (
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewIcon}>
           <Icon name="cafe" style={{ fontSize: 75 }} />
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewTitle}>
           <H1>Login</H1>
         </View>
 
-        <View style={styles.viewThree}>
+        <View style={styles.viewForm}>
           <ScrollView>
             <Form>
               <FormItem label="Email" placeholder="Email address" onChangeText={this.handleEmail} value={emailValue} />

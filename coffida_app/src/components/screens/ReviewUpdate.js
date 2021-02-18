@@ -10,6 +10,8 @@ import { getAsyncItem, setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import FormReview from '../shared/FormReview';
 import { ButtonBlock, ButtonLight } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
+import { profanityFilter } from '../../utilityFunctions/ProfanityFilter';
 
 class ReviewUpdate extends Component {
   constructor(props) {
@@ -92,7 +94,7 @@ class ReviewUpdate extends Component {
       });
   }
 
-  updateReview = async () => {
+  updateReview = async (overall, price, quality, clenliness, review) => {
     const locId = await getAsyncItem('@reviewLocId');
     const revId = await getAsyncItem('@reviewRevId');
     const pathStr = 'location/' + locId + '/review/' + revId;
@@ -102,32 +104,33 @@ class ReviewUpdate extends Component {
     const { origQualityRating } = this.state;
     const { origClenlinessRating } = this.state;
     const { origReviewBody } = this.state;
-    const { overallRatingValue } = this.state;
-    const { priceRatingValue } = this.state;
-    const { qualityRatingValue } = this.state;
-    const { clenlinessRatingValue } = this.state;
-    const { reviewBodyValue } = this.state;
+    // const { overallRatingValue } = this.state;
+    // const { priceRatingValue } = this.state;
+    // const { qualityRatingValue } = this.state;
+    // const { clenlinessRatingValue } = this.state;
+    // const { reviewBodyValue } = this.state;
     const bodyDataStr = {};
 
-    if (overallRatingValue !== origOverallRating) {
-      bodyDataStr['overall_rating'] = parseInt(overallRatingValue);
-      await setAsyncItem('@reviewOverallRating', overallRatingValue);
+    if (overall !== origOverallRating) {
+      bodyDataStr['overall_rating'] = parseInt(overall);
+      await setAsyncItem('@reviewOverallRating', overall);
     }
-    if (priceRatingValue !== origPriceRating) {
-      bodyDataStr['price_rating'] = parseInt(priceRatingValue);
-      await setAsyncItem('@reviewPriceRating', priceRatingValue);
+    if (price !== origPriceRating) {
+      bodyDataStr['price_rating'] = parseInt(price);
+      await setAsyncItem('@reviewPriceRating', price);
     }
-    if (qualityRatingValue !== origQualityRating) {
-      bodyDataStr['quality_rating'] = parseInt(qualityRatingValue);
-      await setAsyncItem('@reviewQualityRating', qualityRatingValue);
+    if (quality !== origQualityRating) {
+      bodyDataStr['quality_rating'] = parseInt(quality);
+      await setAsyncItem('@reviewQualityRating', quality);
     }
-    if (clenlinessRatingValue !== origClenlinessRating) {
-      bodyDataStr['clenliness_rating'] = parseInt(clenlinessRatingValue);
-      await setAsyncItem('@reviewClenlinessRating', clenlinessRatingValue);
+    if (clenliness !== origClenlinessRating) {
+      bodyDataStr['clenliness_rating'] = parseInt(clenliness);
+      await setAsyncItem('@reviewClenlinessRating', clenliness);
     }
-    if (reviewBodyValue !== origReviewBody) {
-      bodyDataStr['review_body'] = reviewBodyValue;
-      await setAsyncItem('@reviewBody', reviewBodyValue);
+    if (review !== origReviewBody) {
+      const filteredReview = await profanityFilter(review);
+      bodyDataStr['review_body'] = filteredReview;
+      await setAsyncItem('@reviewBody', filteredReview);
     }
     const bodyData = JSON.stringify(bodyDataStr);
     this.patchReview(pathStr, contentType, bodyData);
@@ -138,6 +141,7 @@ class ReviewUpdate extends Component {
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Updated!', ToastAndroid.SHORT);
+          this.loadScreen();
         } else if (response.status === 400) {
           throw 'Bad request';
         } else if (response.status === 401) {
@@ -233,23 +237,13 @@ class ReviewUpdate extends Component {
     const { reviewBodyValue } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewOne: {
+      viewTitle: {
         flex: 4,
         justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewTwo: {
+      viewForm: {
         flex: 15,
-        //justifyContent: 'space-around',
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
     });
 
@@ -261,9 +255,9 @@ class ReviewUpdate extends Component {
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewTitle}>
           <H1>Update Your Review for...</H1>
           <Text>
             {nameValue}
@@ -273,7 +267,7 @@ class ReviewUpdate extends Component {
           </Text>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewForm}>
           <ScrollView>
             <Image source={{ uri: this.state.photoPath }} style={{ width: 100, height: 100 }} />
             <FormReview title="Update Review"
@@ -282,7 +276,7 @@ class ReviewUpdate extends Component {
               onChangeTextQuality={(qualityRatingValue) => this.setState({ qualityRatingValue })} valueQuality={qualityRatingValue}
               onChangeTextClenliness={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })} valueClenliness={clenlinessRatingValue}
               onChangeTextReview={(reviewBodyValue) => this.setState({ reviewBodyValue })} valueReview={reviewBodyValue}
-              buttonPress={() => this.updateReview()}
+              buttonPress={() => this.updateReview(overallRatingValue, priceRatingValue, qualityRatingValue, clenlinessRatingValue, reviewBodyValue)}
               buttonLabel="Update Review"
             />
             <ButtonBlock buttonFunction={() => this.addPhoto()} buttonText="Add/update photo" />

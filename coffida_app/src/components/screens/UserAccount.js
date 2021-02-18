@@ -11,6 +11,7 @@ import { getAsyncItem, setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import FormUser from '../shared/FormUser';
 import { ButtonBlock } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class UserAccount extends Component {
   constructor(props) {
@@ -189,23 +190,12 @@ class UserAccount extends Component {
     const { passwordCheckValue } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewOne: {
+      viewTitle: {
         flex: 2,
-        justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewTwo: {
+      viewForm: {
         flex: 15,
-        //justifyContent: 'space-around',
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
     });
 
@@ -217,13 +207,13 @@ class UserAccount extends Component {
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewTitle}>
           <H1>My Account details</H1>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewForm}>
           <ScrollView>
             <FormUser
               onChangeTextFirstName={(firstNameValue) => this.setState({ firstNameValue })} valueFirstName={firstNameValue}

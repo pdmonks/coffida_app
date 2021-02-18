@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { postRequest } from '../../api/ApiRequests';
 import FormUser from '../shared/FormUser';
 import { ButtonBlock, ButtonLight } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class NewAccount extends Component {
   constructor(props) {
@@ -88,35 +89,25 @@ class NewAccount extends Component {
     const { passwordCheckValue } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewOne: {
+      viewTitle: {
         flex: 1,
         justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewTwo: {
+      viewForm: {
         flex: 9,
-        //justifyContent: 'space-around',
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
     });
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewTitle}>
           <H1>Register Your Account</H1>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewForm}>
           <ScrollView>
             <FormUser
               onChangeTextFirstName={(firstNameValue) => this.setState({ firstNameValue })} valueFirstName={firstNameValue}

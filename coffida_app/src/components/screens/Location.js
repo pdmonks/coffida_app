@@ -10,6 +10,7 @@ import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import { getAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import { ButtonBlock } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class Location extends Component {
   constructor(props) {
@@ -172,7 +173,7 @@ class Location extends Component {
       });
   }
 
-  // MOVE THIS TO MY LOCATIONS PAGE
+  /* / MOVE THIS TO MY LOCATIONS PAGE
   deleteFavourite = async () => {
     const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/favourite';
@@ -199,7 +200,7 @@ class Location extends Component {
       .catch((error) => {
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
-  }
+  } */
 
   /* favouriteLocation = () => {
     if (this.state.favouriteLabel === 'add to favourites') {
@@ -225,18 +226,12 @@ class Location extends Component {
     const { locationReviews } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
+      viewLocation: {
         flex: 1,
-        alignItems: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
-      viewOne: {
+      viewReviews: {
         flex: 1,
-        alignContent: 'center',
-        alignSelf: 'center',
-      },
-      viewTwo: {
-        flex: 1,
+        alignSelf: 'stretch',
         borderTopWidth: 1,
       },
     });
@@ -249,9 +244,9 @@ class Location extends Component {
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <ScrollView style={styles.viewOne}>
+        <ScrollView style={styles.viewLocation}>
           <View>
             <Image source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }} style={{ width: 100, height: 100 }} />
             <Text>{locationNameValue}, {locationTownValue} {locationIdValue}</Text>
@@ -264,7 +259,7 @@ class Location extends Component {
           </View>
         </ScrollView>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewReviews}>
           <Text>Reviews:</Text>
           <FlatList
             data={locationReviews}

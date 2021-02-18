@@ -9,6 +9,7 @@ import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import { getAsyncItem, setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import { ButtonBlock } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class Reviews extends Component {
   constructor(props) {
@@ -80,22 +81,12 @@ class Reviews extends Component {
     const { userReviews } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewOne: {
+      viewTitle: {
         flex: 2,
-        justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewTwo: {
+      viewReviews: {
         flex: 15,
-        //justifyContent: 'space-around',
-        backgroundColor: '#f5f5f5',
+        alignSelf: 'stretch',
       },
     });
 
@@ -107,13 +98,13 @@ class Reviews extends Component {
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewTitle}>
           <H1>Reviews I have posted</H1>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewReviews}>
           <FlatList
             data={userReviews}
             renderItem={({ item }) => (

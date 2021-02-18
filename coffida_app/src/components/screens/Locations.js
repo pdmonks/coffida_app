@@ -13,6 +13,7 @@ import { setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import FormItem from '../shared/FormItem';
 import { ButtonBlock, ButtonInfo } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class Locations extends Component {
   constructor(props) {
@@ -128,32 +129,20 @@ class Locations extends Component {
     const { limitValue } = this.state;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-      },
-      viewOne: {
+      viewTitle: {
         flex: 2,
-        justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
       },
-      viewTwo: {
+      viewForm: {
         flex: 15,
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
-      viewThree: {
+      viewButton: {
         flex: 5,
         alignSelf: 'stretch',
-        backgroundColor: '#f5f5f5',
       },
-      viewFour: {
+      viewResults: {
         flex: 15,
         flexDirection: 'row',
-        backgroundColor: '#f5f5f5',
         borderTopWidth: 1,
       },
     });
@@ -166,13 +155,13 @@ class Locations extends Component {
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewTitle}>
           <H3>Coffida Search</H3>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewForm}>
           <ScrollView>
             <Form>
               <FormItem label="Name or town" placeholder="Name or location" onChangeText={(qValue) => this.setState({ qValue })} value={qValue} />
@@ -186,12 +175,12 @@ class Locations extends Component {
           </ScrollView>
         </View>
 
-        <View style={styles.viewThree}>
+        <View style={styles.viewButton}>
           <ButtonBlock buttonFunction={() => this.filteredLocationList()} buttonText="Search" />
           <Text>    Search results:</Text>
         </View>
 
-        <View style={styles.viewFour}>
+        <View style={styles.viewResults}>
           <FlatList
             data={this.state.locationListData}
             renderItem={({ item }) => (

@@ -4,6 +4,7 @@ import { Icon, H1 } from 'native-base';
 import PropTypes from 'prop-types';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import { ButtonBlock } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class Welcome extends Component {
   checkLoggedIn = async () => {
@@ -18,30 +19,24 @@ class Welcome extends Component {
 
   render() {
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      viewOne: {
+      viewIcon: {
         flex: 1,
         justifyContent: 'flex-end',
       },
-      viewTwo: {
+      viewMain: {
         flex: 1,
       },
     });
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewIcon}>
           <Icon name="cafe" style={{ fontSize: 75 }} />
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewMain}>
           <H1>Welcome to CoffiDa</H1>
           <Text>{' '}</Text>
           <ButtonBlock buttonFunction={() => this.checkLoggedIn()} buttonText="Enter" />

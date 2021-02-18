@@ -4,6 +4,7 @@ import { Icon, H1, H3 } from 'native-base';
 import PropTypes from 'prop-types';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import { ButtonBlock } from '../shared/Buttons';
+import { commonStyles } from '../../styles/CommonStyles';
 
 class Home extends Component {
   componentDidMount() {
@@ -28,40 +29,33 @@ class Home extends Component {
     const { navigation } = this.props;
 
     const styles = StyleSheet.create({
-      flexContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      viewOne: {
+      viewIcon: {
         flex: 1,
         justifyContent: 'flex-end',
       },
-      viewTwo: {
+      viewContent: {
         flex: 1,
         flexDirection: 'row',
-        justifyContent: 'center',
       },
     });
 
     return (
 
-      <View style={styles.flexContainer}>
+      <View style={commonStyles.background}>
 
-        <View style={styles.viewOne}>
+        <View style={styles.viewIcon}>
           <Icon name="cafe" style={{ fontSize: 75 }} />
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewContent}>
           <H1>CoffiDa</H1>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewContent}>
           <H3>discover great coffee</H3>
         </View>
 
-        <View style={styles.viewTwo}>
+        <View style={styles.viewContent}>
           <ButtonBlock buttonFunction={() => navigation.navigate('Welcome')} buttonText="Back Welcome Screen (temp)" />
         </View>
 
