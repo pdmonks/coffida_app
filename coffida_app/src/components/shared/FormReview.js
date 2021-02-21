@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import {
-    Form, Item, Input, Text, Label,
+    Form, Item, Input, Text, Label, Picker,
 } from 'native-base';
+import StarRating from 'react-native-star-rating';
+import StarEditable from '../shared/StarEditable';
 import { ButtonBlock } from './Buttons';
 
 class FormReview extends Component {
@@ -9,38 +11,39 @@ class FormReview extends Component {
     return (
       
       <Form>
-        <Item floatingLabel>
+
+        <Item>
           <Label>Overall rating</Label>
-          <Input
-            placeholder="0 - 5"
-            onChangeText={this.props.onChangeTextOverall}
-            value={this.props.valueOverall}
+          <StarEditable
+            rating={parseInt(this.props.overallStarRatingValue)}
+            selectedStar={this.props.selectedOverallRatingStar}
           />
         </Item>
-        <Item floatingLabel>
+
+        <Item>
           <Label>Price rating</Label>
-          <Input
-            placeholder="0 - 5"
-            onChangeText={this.props.onChangeTextPrice}
-            value={this.props.valuePrice}
+          <StarEditable
+            rating={parseInt(this.props.priceStarRatingValue)}
+            selectedStar={this.props.selectedPriceRatingStar}
           />
         </Item>
-        <Item floatingLabel>
+
+        <Item>
           <Label>Quality rating</Label>
-          <Input
-            placeholder="0 - 5"
-            onChangeText={this.props.onChangeTextQuality}
-            value={this.props.valueQuality}
+          <StarEditable
+            rating={parseInt(this.props.qualityStarRatingValue)}
+            selectedStar={this.props.selectedQualityRatingStar}
           />
         </Item>
-        <Item floatingLabel>
+
+        <Item>
           <Label>Cleanliness rating</Label>
-          <Input
-            placeholder="0 - 5"
-            onChangeText={this.props.onChangeTextClenliness}
-            value={this.props.valueClenliness}
-        />
+          <StarEditable
+            rating={parseInt(this.props.clenlinessStarRatingValue)}
+            selectedStar={this.props.selectedClenlinessRatingStar}
+          />
         </Item>
+
         <Item floatingLabel>
           <Label>Review</Label>
           <Input

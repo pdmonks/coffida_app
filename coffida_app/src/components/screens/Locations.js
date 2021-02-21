@@ -3,18 +3,20 @@ import {
   View, FlatList, StyleSheet,
 } from 'react-native';
 import {
-  Container, Form, Text, Header, H3, Picker, Item, Icon,
+  Form, Text, H3, ListItem, Left, Right, Radio,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { getRequest } from '../../api/ApiRequests';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
-import { setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import FormItem from '../shared/FormItem';
 import { ButtonBlock, ButtonInfo } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
+import { responseStatusMessage } from '../../api/ApiStatus';
+import StarEditable from '../shared/StarEditable';
 
+// screen which allows the user to search for locations based on required criteria
 class Locations extends Component {
   constructor(props) {
     super(props);
@@ -27,16 +29,21 @@ class Locations extends Component {
       qualityRatingValue: '',
       clenlinessRatingValue: '',
       searchInValue: '',
-      limitValue: '',
-      offsetValue: '',
+      limitValue: '3',
+      incrementValue: 3,
+      offsetValue: '0', // requires pagination code
+      searchMessage: '',
     };
   }
+
+  // page setup; check user is logged in and reload page information
 
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
       console.log('** Locations Screen **');
       checkUserLogin(this.props);
+      this.setState({ offsetValue: '0' }); // reset offset value for search results
       this.filteredLocationList();
     });
   }
@@ -45,24 +52,30 @@ class Locations extends Component {
     this.unsubscribe();
   }
 
+  // get request for list of searched locations
   getLocations = async (path) => {
+    const { navigation } = this.props;
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        }
-        if (response.status === 400) {
-          throw 'Bad request';
-        } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 500) {
-          throw 'Server error';
+        if (response.status !== 200) {
+          if (response.status === 401) {
+            navigation.navigate('Login');
+            throw 'Unauthorised Request';
+          } else {
+            throw responseStatusMessage(response.status);
+          }
         } else {
-          throw 'There was a problem, please try again later';
+          return response.json();
         }
       })
       .then((responseJson) => {
+        if (responseJson.length === 0) {
+          console.log('nothing returned');
+          this.setState({
+            searchMessage: 'No results',
+          });
+        }
         this.setState({
           isLoading: false,
           locationListData: responseJson,
@@ -73,16 +86,45 @@ class Locations extends Component {
       });
   }
 
-  async filteredLocationList() {
-    let pathStr = 'find/?';
-    const { qValue } = this.state;
-    const { overallRatingValue } = this.state;
-    const { priceRatingValue } = this.state;
-    const { qualityRatingValue } = this.state;
-    const { clenlinessRatingValue } = this.state;
-    const { searchInValue } = this.state;
-    const { limitValue } = this.state;
+  // handler for all star rating inputs on search form
+  onStarRatingPress = (rating, name) => {
+    console.log(name, rating);
+    const stateObject = () => {
+      const returnObj = {};
+      returnObj[name] = rating.toString();
+      return returnObj;
+    };
+    this.setState(stateObject);
+  }
 
+  // reset offset value in URI parameter, before running a new locations search
+  searchLocations = async () => {
+    await this.setState({ offsetValue: 0 });
+    console.log('offset value:', this.state.offsetValue);
+    this.filteredLocationList(this.state.offsetValue);
+  }
+
+  // increase offset result value in URI parameter, before searching for further locations
+  moreResults = async () => {
+    await this.setState({ offsetValue: (parseInt(this.state.offsetValue) + this.state.incrementValue) });
+    console.log('offset value: ', this.state.offsetValue);
+    this.filteredLocationList(this.state.offsetValue);
+  }
+
+  // constructs URI from checked search criteria
+  async filteredLocationList(offset) {
+    await this.setState({ searchMessage: '' });
+    let pathStr = 'find/?';
+    const {
+      qValue,
+      overallRatingValue,
+      priceRatingValue,
+      qualityRatingValue,
+      clenlinessRatingValue,
+      searchInValue,
+      limitValue,
+    } = this.state;
+    // add each criteria to search URI if selected
     if (qValue !== '') {
       pathStr += 'q=' + qValue + '&';
     }
@@ -104,29 +146,36 @@ class Locations extends Component {
     if (limitValue !== '') {
       pathStr += 'limit=' + limitValue + '&';
     }
+    if (offset > 0) {
+      pathStr += 'offset=' + offset + '&';
+    }
     // remove '?' or last '&' from string
     pathStr = pathStr.substring(0, (pathStr.length - 1));
     this.getLocations(pathStr);
   }
 
+  // navigate to selected location page with location ID parameter
   async selectLocation(id) {
     const { navigation } = this.props;
-    await setAsyncItem('@selectedLocationId', id.toString());
-    navigation.navigate('Location');
+    console.log(id);
+    navigation.navigate('Location', { locationId: id });
   }
 
   // https://github.com/GeekyAnts/NativeBase/issues/2947
   // moved flatlist out from content tabs to prevent error warning
 
   render() {
-    const { isLoading } = this.state;
-    const { qValue } = this.state;
-    const { overallRatingValue } = this.state;
-    const { priceRatingValue } = this.state;
-    const { qualityRatingValue } = this.state;
-    const { clenlinessRatingValue } = this.state;
-    const { searchInValue } = this.state;
-    const { limitValue } = this.state;
+    const {
+      isLoading,
+      qValue,
+      overallRatingValue,
+      priceRatingValue,
+      qualityRatingValue,
+      clenlinessRatingValue,
+      searchInValue,
+      locationListData,
+      searchMessage,
+    } = this.state;
 
     const styles = StyleSheet.create({
       viewTitle: {
@@ -142,7 +191,8 @@ class Locations extends Component {
       },
       viewResults: {
         flex: 15,
-        flexDirection: 'row',
+        // flexDirection: 'row',
+        alignSelf: 'stretch',
         borderTopWidth: 1,
       },
     });
@@ -158,31 +208,100 @@ class Locations extends Component {
       <View style={commonStyles.background}>
 
         <View style={styles.viewTitle}>
-          <H3>Coffida Search</H3>
+          <H3>Search for great coffee...</H3>
         </View>
 
         <View style={styles.viewForm}>
           <ScrollView>
             <Form>
-              <FormItem label="Name or town" placeholder="Name or location" onChangeText={(qValue) => this.setState({ qValue })} value={qValue} />
-              <FormItem label="Overall rating" placeholder="0 - 5" onChangeText={(overallRatingValue) => this.setState({ overallRatingValue })} value={overallRatingValue} />
-              <FormItem label="Price rating" placeholder="0 - 5" onChangeText={(priceRatingValue) => this.setState({ priceRatingValue })} value={priceRatingValue} />
-              <FormItem label="Quality rating" placeholder="0 - 5" onChangeText={(qualityRatingValue) => this.setState({ qualityRatingValue })} value={qualityRatingValue} />
-              <FormItem label="Cleanliness rating" placeholder="0 - 5" onChangeText={(clenlinessRatingValue) => this.setState({ clenlinessRatingValue })} value={clenlinessRatingValue} />
-              <FormItem label="Search in" placeholder="fav or rev" onChangeText={(searchInValue) => this.setState({ searchInValue })} value={searchInValue} />
-              <FormItem label="Limit" placeholder="20" onChangeText={(limitValue) => this.setState({ limitValue })} value={limitValue} />
+              <ListItem>
+                <FormItem label="Name or town" placeholder="Name or location" onChangeText={(qValue) => this.setState({ qValue })} value={qValue} />
+              </ListItem>
+              <ListItem>
+                <Left><Text>Overall rating</Text></Left>
+                <Right>
+                  <StarEditable
+                    rating={overallRatingValue}
+                    selectedStar={(rating) => this.onStarRatingPress(rating, 'overallRatingValue')}
+                  />
+                </Right>
+              </ListItem>
+              <ListItem>
+                <Left><Text>Price rating</Text></Left>
+                <Right>
+                  <StarEditable
+                    rating={priceRatingValue}
+                    selectedStar={(rating) => this.onStarRatingPress(rating, 'priceRatingValue')}
+                  />
+                </Right>
+              </ListItem>
+              <ListItem>
+                <Left><Text>Quality rating</Text></Left>
+                <Right>
+                  <StarEditable
+                    rating={qualityRatingValue}
+                    selectedStar={(rating) => this.onStarRatingPress(rating, 'qualityRatingValue')}
+                  />
+                </Right>
+              </ListItem>
+              <ListItem>
+                <Left><Text>Cleanliness rating</Text></Left>
+                <Right>
+                  <StarEditable
+                    rating={clenlinessRatingValue}
+                    selectedStar={(rating) => this.onStarRatingPress(rating, 'clenlinessRatingValue')}
+                  />
+                </Right>
+              </ListItem>
+              <ListItem>
+                <Left>
+                  <Text>Search all locations</Text>
+                </Left>
+                <Right>
+                  <Radio
+                    onPress={() => this.setState({ searchInValue: '' })}
+                    selected={searchInValue === ''}
+                  />
+                </Right>
+              </ListItem>
+              <ListItem>
+                <Left>
+                  <Text>Only favourites</Text>
+                </Left>
+                <Right>
+                  <Radio
+                    onPress={() => this.setState({ searchInValue: 'favourite' })}
+                    selected={searchInValue === 'favourite'}
+                  />
+                </Right>
+              </ListItem>
+              <ListItem>
+                <Left>
+                  <Text>Only reviewed</Text>
+                </Left>
+                <Right>
+                  <Radio
+                    onPress={() => this.setState({ searchInValue: 'reviewed' })}
+                    selected={searchInValue === 'reviewed'}
+                  />
+                </Right>
+              </ListItem>
+
             </Form>
           </ScrollView>
         </View>
 
         <View style={styles.viewButton}>
-          <ButtonBlock buttonFunction={() => this.filteredLocationList()} buttonText="Search" />
-          <Text>    Search results:</Text>
+          <ButtonBlock buttonFunction={() => this.searchLocations()} buttonText="Search" />
+          <Text>
+            {'    Search results: '}
+            {searchMessage}
+          </Text>
         </View>
 
         <View style={styles.viewResults}>
           <FlatList
-            data={this.state.locationListData}
+            data={locationListData.sort((a, b) => (a.location_id > b.location_id) ? 1 : -1)}
             renderItem={({ item }) => (
               <View>
                 <ButtonInfo buttonFunction={() => this.selectLocation(item.location_id.toString())} buttonText={item.location_name + ', ' + item.location_town + item.location_id} />
@@ -190,6 +309,7 @@ class Locations extends Component {
             )}
             keyExtractor={({ location_id }, index) => location_id.toString()}
           />
+          <ButtonBlock buttonFunction={() => this.moreResults()} buttonText="More Results..." />
         </View>
 
       </View>

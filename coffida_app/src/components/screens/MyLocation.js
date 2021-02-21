@@ -8,6 +8,7 @@ import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 
+// request location permission from user if not already obtained
 async function requestLocationPermission() {
   let permissionFlag = false;
   try {
@@ -34,6 +35,7 @@ async function requestLocationPermission() {
   return permissionFlag;
 }
 
+// screen which shows the current location of the user
 class MyLocation extends Component {
   constructor(props) {
     super(props);
@@ -45,6 +47,7 @@ class MyLocation extends Component {
     this.findCoordinates = this.findCoordinates.bind(this);
   }
 
+  // page setup; check user is logged in and reload page information
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
@@ -58,6 +61,7 @@ class MyLocation extends Component {
     this.unsubscribe();
   }
 
+  // get the current location of the user
   findCoordinates = () => {
     const { locationPermission } = this.state;
     if (!locationPermission) {
@@ -85,8 +89,16 @@ class MyLocation extends Component {
   };
 
   render() {
-    const { isLoading } = this.state;
-    const { location } = this.state;
+    const { isLoading, location } = this.state;
+
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+      },
+      map: {
+        flex: 1,
+      },
+    });
 
     if (isLoading) {
       return (
@@ -96,7 +108,7 @@ class MyLocation extends Component {
     return (
       <View style={styles.container}>
         <MapView
-          provider={PROVIDER_GOOGLE} // remove if not using Google Maps
+          provider={PROVIDER_GOOGLE}
           style={styles.map}
           region={{
             latitude: location.latitude,
@@ -107,8 +119,8 @@ class MyLocation extends Component {
         >
           <Marker
             coordinate={location}
-            title="My location"
-            description="Here I am"
+            title="My current postion"
+            description="I am here!"
           />
         </MapView>
 
@@ -116,15 +128,6 @@ class MyLocation extends Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-});
 
 MyLocation.propTypes = {
   navigation: PropTypes.shape({

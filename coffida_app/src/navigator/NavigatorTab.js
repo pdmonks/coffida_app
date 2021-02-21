@@ -28,7 +28,7 @@ class HomeNav extends PureComponent {
               iconName = focused ? 'cafe' : 'cafe-outline';
             } else if (route.name === 'My Location') {
               iconName = focused ? 'earth' : 'earth-outline';
-            } else if (route.name === 'My Stuff') {
+            } else if (route.name === 'My Info') {
               iconName = focused ? 'body' : 'body-outline';
             }
 
@@ -41,7 +41,7 @@ class HomeNav extends PureComponent {
         <Tab.Screen name="Home" component={Home} />
         <Tab.Screen name="Coffee Shops" component={Locations} />
         <Tab.Screen name="My Location" component={MyLocation} />
-        <Tab.Screen name="My Stuff" component={NavigatorDrawer} />
+        <Tab.Screen name="My Info" component={NavigatorDrawer} />
       </Tab.Navigator>
 
     );

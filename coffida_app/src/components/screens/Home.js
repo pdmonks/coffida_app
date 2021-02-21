@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Icon, H1, H3 } from 'native-base';
 import PropTypes from 'prop-types';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import { ButtonBlock } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
 
+// home screen to access all main app functions
 class Home extends Component {
+  // page setup; check user is logged in and reload page information
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
@@ -56,7 +58,7 @@ class Home extends Component {
         </View>
 
         <View style={styles.viewContent}>
-          <ButtonBlock buttonFunction={() => navigation.navigate('Welcome')} buttonText="Back Welcome Screen (temp)" />
+          <ButtonBlock buttonFunction={() => navigation.navigate('Welcome')} buttonText="Back to Welcome Screen" />
         </View>
 
       </View>

@@ -1,35 +1,39 @@
 import React, { Component } from 'react';
-import { View, Image, FlatList, ToastAndroid, StyleSheet } from 'react-native';
 import {
-  Container, Text, Card, CardItem, H3,
-} from 'native-base';
+  View, Image, FlatList, ToastAndroid, StyleSheet,
+} from 'react-native';
+import { Text, Card, CardItem } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { deleteRequest, getRequest, postRequest } from '../../api/ApiRequests';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
-import { getAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import { ButtonBlock } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
+import { responseStatusMessage } from '../../api/ApiStatus';
+import StarFixed from '../shared/StarFixed';
 
+// screen which shows a single location and all associated reviews
 class Location extends Component {
   constructor(props) {
     super(props);
+    const { locationId } = this.props.route.params;
     this.state = {
+      selectedLocation: locationId,
       isLoading: true,
-      locationIdValue: 0,           // location_id
-      locationNameValue: '',        // location_name
-      locationTownValue: '',        // location_town
-      latitudeValue: 0,             // latitude
-      longitudeValue: 0,            // longitude
+      locationIdValue: 0,
+      locationNameValue: '',
+      locationTownValue: '',
       photoPathValue: '',           // photo_path               ** NEED TO IMPLEMENT THIS
-      avgOverallRatingValue: 0,     // avg_overall_rating
-      avgPriceRatingValue: 0,       // avg_price_rating
-      avgQualityRatingValue: 0,     // avg_quality_rating
-      avgClenlinessRatingValue: 0,  // avg_clenliness_rating
-      locationReviews: [],          // location_reviews
+      avgOverallRatingValue: 0,
+      avgPriceRatingValue: 0,
+      avgQualityRatingValue: 0,
+      avgClenlinessRatingValue: 0,
+      locationReviews: [],
     };
   }
+
+  // page setup; check user is logged in and reload page information
 
   componentDidMount() {
     const { navigation } = this.props;
@@ -44,21 +48,24 @@ class Location extends Component {
     this.unsubscribe();
   }
 
+  // get request for selected location information
   getLocationInfo = async () => {
-    const locId = await getAsyncItem('@selectedLocationId');
-    const path = 'location/' + locId;
+    const { navigation } = this.props;
+    const { selectedLocation } = this.state;
+    // const locId = selectedLocation;
+    const path = 'location/' + selectedLocation;
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        }
-        if (response.status === 404) {
-          throw 'No locations found';
-        } else if (response.status === 500) {
-          throw 'Sorry, we could not process your request. Please try again later';
+        if (response.status !== 200) {
+          if (response.status === 401) {
+            navigation.navigate('Login');
+            throw 'Unauthorised Request';
+          } else {
+            throw responseStatusMessage(response.status);
+          }
         } else {
-          throw 'There was a problem, please try again later';
+          return response.json();
         }
       })
       .then((responseJson) => {
@@ -67,8 +74,6 @@ class Location extends Component {
           locationIdValue: responseJson.location_id,
           locationNameValue: responseJson.location_name,
           locationTownValue: responseJson.location_town,
-          latitudeValue: responseJson.latitude,
-          longitudeValue: responseJson.longitude,
           // photoPathValue: responseJson.photo_path,
           avgOverallRatingValue: responseJson.avg_overall_rating,
           avgPriceRatingValue: responseJson.avg_price_rating,
@@ -83,30 +88,29 @@ class Location extends Component {
       });
   }
 
+  // construct URI for post request to like a review
   likeReview = async (revId) => {
-    const locId = await getAsyncItem('@selectedLocationId');
-    const pathStr = 'location/' + locId + '/review/' + revId + '/like';
+    const { selectedLocation } = this.state;
+    // const locId = selectedLocation;
+    const pathStr = 'location/' + selectedLocation + '/review/' + revId + '/like';
     const contentType = null;
     const bodyData = null;
-    this.postLike(pathStr, contentType, bodyData);
+    this.postLikeReview(pathStr, contentType, bodyData);
   }
 
-  postLike = async (path, type, data) => {
+  // post request to like a review
+  postLikeReview = async (path, type, data) => {
+    const { navigation } = this.props;
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Review liked', ToastAndroid.SHORT);
           this.getLocationInfo();
-        } else if (response.status === 400) {
-          throw 'Bad request';
         } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 404) {
-          throw 'Not found';
-        } else if (response.status === 500) {
-          throw 'Server error';
+          navigation.navigate('Login');
+          throw 'Unauthorised request';
         } else {
-          throw 'There was a problem, please try again later';
+          throw responseStatusMessage(response.status);
         }
       })
       .catch((error) => {
@@ -114,28 +118,28 @@ class Location extends Component {
       });
   }
 
+  // construct URI for delete request to unlike a review
   unlikeReview = async (revId) => {
-    const locId = await getAsyncItem('@selectedLocationId');
-    const pathStr = 'location/' + locId + '/review/' + revId + '/like';
-    this.deleteLike(pathStr);
+    // const locId = await getAsyncItem('@selectedLocationId');
+    const { selectedLocation } = this.state;
+    // const locId = selectedLocation;
+    const pathStr = 'location/' + selectedLocation + '/review/' + revId + '/like';
+    this.deleteLikeReview(pathStr);
   }
 
-  deleteLike = async (path) => {
+  // delete request to unlike a review
+  deleteLikeReview = async (path) => {
+    const { navigation } = this.props;
     return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Review unliked', ToastAndroid.SHORT);
           this.getLocationInfo();
-        } else if (response.status === 400) {
-          throw 'Bad request';
         } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 404) {
-          throw 'Not found';
-        } else if (response.status === 500) {
-          throw 'Server error';
+          navigation.navigate('Login');
+          throw 'Unauthorised request';
         } else {
-          throw 'There was a problem, please try again later';
+          throw responseStatusMessage(response.status);
         }
       })
       .catch((error) => {
@@ -143,64 +147,35 @@ class Location extends Component {
       });
   }
 
-  addFavourite = async () => {
-    const locId = await getAsyncItem('@selectedLocationId');
-    const pathStr = 'location/' + locId + '/favourite';
+  // construct URI for post request to add location to user favourites
+  addFavouriteLocation = async () => {
+    // const locId = await getAsyncItem('@selectedLocationId');
+    const { selectedLocation } = this.state;
+    // const locId = selectedLocation;
+    const pathStr = 'location/' + selectedLocation + '/favourite';
     const contentType = null;
     const bodyData = null;
-    this.postFavourite(pathStr, contentType, bodyData);
+    this.postFavouriteLocation(pathStr, contentType, bodyData);
   }
 
-  postFavourite = async (path, type, data) => {
+  // post request to add location to user favourites
+  postFavouriteLocation = async (path, type, data) => {
+    const { navigation } = this.props;
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Added to favourite locations', ToastAndroid.SHORT);
-        } else if (response.status === 400) {
-          throw 'Bad request';
         } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 404) {
-          throw 'Not found';
-        } else if (response.status === 500) {
-          throw 'Server error';
+          navigation.navigate('Login');
+          throw 'Unauthorised request';
         } else {
-          throw 'There was a problem, please try again later';
+          throw responseStatusMessage(response.status);
         }
       })
       .catch((error) => {
         ToastAndroid.show(error, ToastAndroid.SHORT);
       });
   }
-
-  /* / MOVE THIS TO MY LOCATIONS PAGE
-  deleteFavourite = async () => {
-    const locId = await getAsyncItem('@selectedLocationId');
-    const pathStr = 'location/' + locId + '/favourite';
-    this.deleteFavouriteData(pathStr);
-  }
-
-  deleteFavouriteData = async (path) => {
-    return deleteRequest(path)
-      .then((response) => {
-        if (response.status === 200) {
-          console.log('location removed from favourites');
-        } else if (response.status === 400) {
-          throw 'Bad request';
-        } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 404) {
-          throw 'Not found';
-        } else if (response.status === 500) {
-          throw 'Server error';
-        } else {
-          throw 'There was a problem, please try again later';
-        }
-      })
-      .catch((error) => {
-        ToastAndroid.show(error, ToastAndroid.SHORT);
-      });
-  } */
 
   /* favouriteLocation = () => {
     if (this.state.favouriteLabel === 'add to favourites') {
@@ -214,16 +189,19 @@ class Location extends Component {
 
   render() {
     const { navigation } = this.props;
-    const { isLoading } = this.state;
-    const { locationIdValue } = this.state;
-    const { locationNameValue } = this.state;
-    const { locationTownValue } = this.state;
+    const {
+      isLoading,
+      locationIdValue,
+      locationNameValue,
+      locationTownValue,
     // const { photoPathValue } = this.state;
-    const { avgOverallRatingValue } = this.state;
-    const { avgPriceRatingValue } = this.state;
-    const { avgQualityRatingValue } = this.state;
-    const { avgClenlinessRatingValue } = this.state;
-    const { locationReviews } = this.state;
+      avgOverallRatingValue,
+      avgPriceRatingValue,
+      avgQualityRatingValue,
+      avgClenlinessRatingValue,
+      locationReviews,
+      selectedLocation,
+    } = this.state;
 
     const styles = StyleSheet.create({
       viewLocation: {
@@ -249,13 +227,24 @@ class Location extends Component {
         <ScrollView style={styles.viewLocation}>
           <View>
             <Image source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }} style={{ width: 100, height: 100 }} />
-            <Text>{locationNameValue}, {locationTownValue} {locationIdValue}</Text>
-            <Text>Overall: {avgOverallRatingValue} Price: {avgPriceRatingValue} </Text>
-            <Text>Quality: {avgQualityRatingValue} Cleanliness: {avgClenlinessRatingValue} </Text>
+            <Text>
+              {locationNameValue}
+              {', '}
+              {locationTownValue}
+              {locationIdValue}
+            </Text>
+            <Text>Overall </Text>
+            <StarFixed rating={avgOverallRatingValue} />
+            <Text>Price </Text>
+            <StarFixed rating={avgPriceRatingValue} />
+            <Text>Quality </Text>
+            <StarFixed rating={avgQualityRatingValue} />
+            <Text>Cleanliness </Text>
+            <StarFixed rating={avgClenlinessRatingValue} />
           </View>
           <View>
-            <ButtonBlock buttonFunction={() => this.addFavourite()} buttonText="Add to My Favourites" />
-            <ButtonBlock buttonFunction={() => navigation.navigate('ReviewCreate')} buttonText="Post a review" />
+            <ButtonBlock buttonFunction={() => this.addFavouriteLocation()} buttonText="Add to My Favourites" />
+            <ButtonBlock buttonFunction={() => navigation.navigate('ReviewCreate', { locationId: selectedLocation })} buttonText="Post a review" />
           </View>
         </ScrollView>
 
@@ -265,10 +254,31 @@ class Location extends Component {
             data={locationReviews}
             renderItem={({ item }) => (
               <Card>
-                <Text>Overall rating {item.overall_rating} Price rating {item.price_rating} </Text>
-                <Text>Quality rating {item.quality_rating} Cleanliness rating {item.clenliness_rating} </Text>
-                <Text>"{item.review_body}" </Text>
-                <Text>Likes: {item.likes} </Text>
+                <CardItem>
+                  <Text>Overall </Text>
+                  <StarFixed rating={item.overall_rating} />
+                  <Text> Price </Text>
+                  <StarFixed rating={item.price_rating} />
+                </CardItem>
+                <CardItem>
+                  <Text>Quality </Text>
+                  <StarFixed rating={item.quality_rating} />
+                  <Text> Cleanliness </Text>
+                  <StarFixed rating={item.clenliness_rating} />
+                </CardItem>
+                <CardItem>
+                  <Text>
+                    {'"'}
+                    {item.review_body}
+                    {'"'}
+                  </Text>
+                </CardItem>
+                <CardItem>
+                  <Text>
+                    {'Likes: '}
+                    {item.likes}
+                  </Text>
+                </CardItem>
                 <ButtonBlock buttonFunction={() => this.likeReview(item.review_id.toString())} buttonText="like review" />
                 <ButtonBlock buttonFunction={() => this.unlikeReview(item.review_id.toString())} buttonText="unlike review" />
               </Card>
@@ -288,6 +298,7 @@ Location.propTypes = {
     navigate: PropTypes.func.isRequired,
     addListener: PropTypes.func.isRequired,
   }).isRequired,
+  route: PropTypes.object.isRequired,
 };
 
 export default Location;

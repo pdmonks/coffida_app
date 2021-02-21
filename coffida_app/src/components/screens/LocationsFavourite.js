@@ -3,34 +3,28 @@ import {
   FlatList, StyleSheet, ToastAndroid,
 } from 'react-native';
 import {
-  Container, Form, Text, Header, H3, Picker, Item, Icon, H1, View, Card,
+  Text, H1, View, Card, CardItem,
 } from 'native-base';
 import PropTypes from 'prop-types';
-import { ScrollView } from 'react-native-gesture-handler';
 import { getRequest, deleteRequest } from '../../api/ApiRequests';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
-import { setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
-import FormItem from '../shared/FormItem';
-import { ButtonBlock, ButtonInfo } from '../shared/Buttons';
+import { ButtonBlock } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
+import { responseStatusMessage } from '../../api/ApiStatus';
+import StarFixed from '../shared/StarFixed';
 
+// screen which list user favourite locations, allowing selection of individual locations
 class LocationsFavourite extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isLoading: true,
       locationListData: [],
-      qValue: '',
-      overallRatingValue: '',
-      priceRatingValue: '',
-      qualityRatingValue: '',
-      clenlinessRatingValue: '',
-      searchInValue: '',
-      limitValue: '',
-      offsetValue: '',
     };
   }
+
+  // page setup; check user is logged in and reload page information
 
   componentDidMount() {
     const { navigation } = this.props;
@@ -45,21 +39,21 @@ class LocationsFavourite extends Component {
     this.unsubscribe();
   }
 
+  // get request for list of user favourite locations
   getLocations = async (path) => {
+    const { navigation } = this.props;
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        }
-        if (response.status === 400) {
-          throw 'Bad request';
-        } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 500) {
-          throw 'Server error';
+        if (response.status !== 200) {
+          if (response.status === 401) {
+            navigation.navigate('Login');
+            throw 'Unauthorised Request';
+          } else {
+            throw responseStatusMessage(response.status);
+          }
         } else {
-          throw 'There was a problem, please try again later';
+          return response.json();
         }
       })
       .then((responseJson) => {
@@ -73,29 +67,25 @@ class LocationsFavourite extends Component {
       });
   }
 
-  // MOVE THIS TO MY LOCATIONS PAGE
+  // construct URI for delete favourite location request
   deleteFavourite = async (locId) => {
-    // const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + locId + '/favourite';
     this.deleteFavouriteData(pathStr);
   }
 
+  // delete request to remove location from user favourites
   deleteFavouriteData = async (path) => {
+    const { navigation } = this.props;
     return deleteRequest(path)
       .then((response) => {
         if (response.status === 200) {
-          console.log('location removed from favourites');
+          ToastAndroid.show('Removed from favourites', ToastAndroid.SHORT);
           this.favouriteLocationList();
-        } else if (response.status === 400) {
-          throw 'Bad request';
         } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 404) {
-          throw 'Not found';
-        } else if (response.status === 500) {
-          throw 'Server error';
+          navigation.navigate('Login');
+          throw 'Unauthorised request';
         } else {
-          throw 'There was a problem, please try again later';
+          throw responseStatusMessage(response.status);
         }
       })
       .catch((error) => {
@@ -103,20 +93,20 @@ class LocationsFavourite extends Component {
       });
   }
 
+  // navigate to selected location page with location ID parameter
   async selectLocation(id) {
     const { navigation } = this.props;
-    await setAsyncItem('@selectedLocationId', id.toString());
-    navigation.navigate('Location');
+    navigation.navigate('Location', { locationId: id });
   }
 
+  // construct URI for favourite location get request
   async favouriteLocationList() {
     const pathStr = 'find?search_in=favourite';
     this.getLocations(pathStr);
   }
 
   render() {
-    const { isLoading } = this.state;
-    const { locationListData } = this.state;
+    const { isLoading, locationListData } = this.state;
 
     const styles = StyleSheet.create({
       viewTitle: {
@@ -147,11 +137,26 @@ class LocationsFavourite extends Component {
             data={locationListData}
             renderItem={({ item }) => (
               <Card>
-                <Text>{item.location_name}, {item.location_town} </Text>
-                <Text>Overall {item.avg_overall_rating} </Text>
-                <Text>Price {item.avg_price_rating} </Text>
-                <Text>Quality {item.avg_quality_rating} </Text>
-                <Text>Cleanliness {item.avg_clenliness_rating} </Text>
+                <Text>
+                  {item.location_name}
+                  {', '}
+                  {item.location_town}
+                </Text>
+
+                <CardItem>
+                  <Text>Overall </Text>
+                  <StarFixed rating={item.avg_overall_rating} />
+                  <Text> Price </Text>
+                  <StarFixed rating={item.avg_price_rating} />
+                </CardItem>
+
+                <CardItem>
+                  <Text>Quality </Text>
+                  <StarFixed rating={item.avg_quality_rating} />
+                  <Text> Cleanliness </Text>
+                  <StarFixed rating={item.avg_clenliness_rating} />
+                </CardItem>
+
                 <ButtonBlock
                   buttonFunction={() => this.selectLocation(item.location_id.toString())}
                   buttonText="View Location"

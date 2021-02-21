@@ -6,9 +6,9 @@ class IsLoadingIndicator extends Component {
   render() {
 
     return (
-      <View style={commonStyles.backgroundCentered}>
+      <View style={commonStyles.background}>
         <View>
-        <ActivityIndicator size="large" color="#ff0000" />
+        <ActivityIndicator size="large" color="#0000ff" />
         </View>
       </View>
     );

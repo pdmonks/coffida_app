@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 import { RNCamera } from 'react-native-camera';
 import { postRequest } from '../../api/ApiRequests';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
-import { getAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import { ButtonBlock } from '../shared/Buttons';
+import { responseStatusMessage } from '../../api/ApiStatus';
 
+// screen to allow users to add a photo to a review
 class ReviewPhoto extends Component {
-
+  // check information entered into new user account form
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
@@ -21,21 +22,42 @@ class ReviewPhoto extends Component {
     this.unsubscribe();
   }
 
+  // save photo on device and call function to upload to server
+  takePhoto = async () => {
+    if (this.camera) {
+      const options = { quality: 0.5, base64: true };
+      const data = await this.camera.takePictureAsync(options);
+      console.log(data.uri); // device URI
+      this.sendToServer(data);
+    }
+  }
+
+  // create URI for image post request
+  sendToServer = async (bodyData) => {
+    const { locationId, reviewId } = this.props.route.params;
+    const pathStr = 'location/' + locationId + '/review/' + reviewId + '/photo';
+    const contentType = 'image/jpeg';
+    this.postPhoto(pathStr, contentType, bodyData);
+  }
+
+  // post request for new image
   postPhoto = async (path, type, data) => {
     const { navigation } = this.props;
     return postRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Photo added', ToastAndroid.SHORT);
-          navigation.navigate('ReviewUpdate');
-        } else if (response.status === 400) {
-          throw 'Bad request';
+          // navigation.goBack();
+          // navigation.navigate('ReviewUpdate');
+          // const loc = 'ReviewUpdate';
+          const loc = this.props.route.params.returnToPage;
+          const par = this.props.route.params.pageParams;
+          navigation.navigate(loc, par);
         } else if (response.status === 401) {
-          throw 'Unauthorised';
-        } else if (response.status === 404) {
-          throw 'Not found';
-        } else if (response.status === 500) {
-          throw 'Server error';
+          navigation.navigate('Login');
+          throw 'Unauthorised request';
+        } else {
+          throw responseStatusMessage(response.status);
         }
       })
       .catch((error) => {
@@ -43,24 +65,18 @@ class ReviewPhoto extends Component {
       });
   }
 
-  takePhoto = async () => {
-    if (this.camera) {
-      const options = { quality: 0.5, base64: true };
-      const data = await this.camera.takePictureAsync(options);
-      console.log(data.uri); // saved on the device
-      this.sendToServer(data);
-    }
-  }
-
-  sendToServer = async (bodyData) => {
-    const locId = await getAsyncItem('@reviewLocId');
-    const revId = await getAsyncItem('@reviewRevId');
-    const pathStr = 'location/' + locId + '/review/' + revId + '/photo';
-    const contentType = 'image/jpeg';
-    this.postPhoto(pathStr, contentType, bodyData);
-  }
-
   render() {
+    const styles = StyleSheet.create({
+      canvas: {
+        flex: 1,
+      },
+      preview: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+      },
+    });
+
     return (
       <View style={styles.canvas}>
         <RNCamera
@@ -82,17 +98,7 @@ ReviewPhoto.propTypes = {
     addListener: PropTypes.func.isRequired,
     goBack: PropTypes.func.isRequired,
   }).isRequired,
+  route: PropTypes.object.isRequired,
 };
-
-const styles = StyleSheet.create({
-  canvas: {
-    flex: 1,
-  },
-  preview: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-});
 
 export default ReviewPhoto;

@@ -14,9 +14,9 @@ class NavigatorDrawer extends PureComponent {
     return (
 
       <Drawer.Navigator>
-        <Drawer.Screen name="My Details" component={UserAccount} options={{ headerShown: true }} />
-        <Drawer.Screen name="My Reviews" component={Reviews} options={{ headerShown: true }} />
         <Drawer.Screen name="My Locations" component={LocationsFavourite} options={{ headerShown: true }} />
+        <Drawer.Screen name="My Reviews" component={Reviews} options={{ headerShown: true }} />
+        <Drawer.Screen name="My Details" component={UserAccount} options={{ headerShown: true }} />
       </Drawer.Navigator>
 
     );

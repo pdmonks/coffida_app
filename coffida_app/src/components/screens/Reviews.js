@@ -1,16 +1,22 @@
 import React, { Component } from 'react';
-import { View, FlatList, ToastAndroid, StyleSheet } from 'react-native';
 import {
-  Container, Text, Button, H1, Card, CardItem,
+  View, FlatList, ToastAndroid, StyleSheet,
+} from 'react-native';
+import {
+  Text, H1, Card, CardItem,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { getRequest } from '../../api/ApiRequests';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
-import { getAsyncItem, setAsyncItem } from '../../asyncStorage/AsyncUtilities';
+import { getAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import { ButtonBlock } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
+import { responseStatusMessage } from '../../api/ApiStatus';
+import StarFixed from '../shared/StarFixed';
 
+// screen which lists all reviews created by the user and allows
+// selection of single review for updating
 class Reviews extends Component {
   constructor(props) {
     super(props);
@@ -19,6 +25,8 @@ class Reviews extends Component {
       userReviews: [],
     };
   }
+
+  // page setup; check user is logged in and reload page information
 
   componentDidMount() {
     const { navigation } = this.props;
@@ -33,21 +41,23 @@ class Reviews extends Component {
     this.unsubscribe();
   }
 
+  // get request for all review information
   getReviews = async () => {
+    const { navigation } = this.props;
     const userId = await getAsyncItem('@id');
     const path = 'user/' + userId;
     this.setState({ isLoading: true });
     return getRequest(path)
       .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        }
-        if (response.status === 404) {
-          throw 'Not Found';
-        } else if (response.status === 500) {
-          throw 'Server error';
+        if (response.status !== 200) {
+          if (response.status === 401) {
+            navigation.navigate('Login');
+            throw 'Unauthorised Request';
+          } else {
+            throw responseStatusMessage(response.status);
+          }
         } else {
-          throw 'There was a problem, please try again later';
+          return response.json();
         }
       })
       .then((responseJson) => {
@@ -61,24 +71,25 @@ class Reviews extends Component {
       });
   }
 
-  updateReview = async (revId, locId, name, town, overall, price, quality, clenliness, body, likes) => {
+  // navigate to selected review update screen, passing relevent review
+  // information as parameters meaning additional DB read is not required
+  updateReview = async (revId, locId, name, town, overall, price, quality, clenliness, body) => {
     const { navigation } = this.props;
-    await setAsyncItem('@reviewRevId', revId);
-    await setAsyncItem('@reviewLocId', locId);
-    await setAsyncItem('@reviewName', name);
-    await setAsyncItem('@reviewTown', town);
-    await setAsyncItem('@reviewOverallRating', overall);
-    await setAsyncItem('@reviewPriceRating', price);
-    await setAsyncItem('@reviewQualityRating', quality);
-    await setAsyncItem('@reviewClenlinessRating', clenliness);
-    await setAsyncItem('@reviewBody', body);
-    await setAsyncItem('@reviewLikes', likes);
-    navigation.navigate('ReviewUpdate');
+    navigation.navigate('ReviewUpdate', {
+      locationId: locId,
+      reviewId: revId,
+      locationName: name,
+      locationTown: town,
+      reviewOverall: overall,
+      reviewPrice: price,
+      reviewQuality: quality,
+      reviewClenliness: clenliness,
+      reviewBody: body,
+    });
   }
 
   render() {
-    const { isLoading } = this.state;
-    const { userReviews } = this.state;
+    const { isLoading, userReviews } = this.state;
 
     const styles = StyleSheet.create({
       viewTitle: {
@@ -109,13 +120,39 @@ class Reviews extends Component {
             data={userReviews}
             renderItem={({ item }) => (
               <Card>
-                <Text>{item.location.location_name}, {item.location.location_town} </Text>
-                <Text>Overall {item.review.overall_rating} </Text>
-                <Text>Price {item.review.price_rating} </Text>
-                <Text>Quality {item.review.quality_rating} </Text>
-                <Text>Cleanliness {item.review.clenliness_rating} </Text>
-                <Text>"{item.review.review_body}"</Text>
-                <Text>Likes: {item.review.likes} </Text>
+                <Text>
+                  {item.location.location_name}
+                  {', '}
+                  {item.location.location_town}
+                </Text>
+                <Text>{item.review.review_id}</Text>
+
+                <CardItem>
+                  <Text>Overall </Text>
+                  <StarFixed rating={item.review.overall_rating} />
+                  <Text> Price </Text>
+                  <StarFixed rating={item.review.price_rating} />
+                </CardItem>
+                <CardItem>
+                  <Text>Quality </Text>
+                  <StarFixed rating={item.review.quality_rating} />
+                  <Text> Cleanliness </Text>
+                  <StarFixed rating={item.review.clenliness_rating} />
+                </CardItem>
+                <CardItem>
+                  <Text>
+                    {'"'}
+                    {item.review.review_body}
+                    {'"'}
+                  </Text>
+                </CardItem>
+                <CardItem>
+                  <Text>
+                    {'Likes: '}
+                    {item.review.likes}
+                  </Text>
+                </CardItem>
+
                 <ButtonBlock
                   buttonFunction={() => this.updateReview(
                     item.review.review_id.toString(),
@@ -127,7 +164,6 @@ class Reviews extends Component {
                     item.review.quality_rating.toString(),
                     item.review.clenliness_rating.toString(),
                     item.review.review_body,
-                    item.review.likes.toString(),
                   )}
                   buttonText="Update Review"
                 />

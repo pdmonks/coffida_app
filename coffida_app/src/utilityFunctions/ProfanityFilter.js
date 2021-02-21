@@ -5,16 +5,18 @@ const profanityList = [
   'pastries',
 ];
 
-const profFilter = (review) => {
-  console.log('Input string:', review);
-  let filteredString = review;
+const profFilter = (inputString) => {
+  console.log('Input string:', inputString);
+  let filteredString = inputString;
   const filteredStringElements = filteredString.split(/[\s,.]+/);
   for (let i = 0; i < filteredStringElements.length; i += 1) {
     for (let j = 0; j < profanityList.length; j += 1) {
-      const elementLower = filteredStringElements[i].toLowerCase(); // convert to lower case
+      const elementLower = filteredStringElements[i].toLowerCase();
       if (elementLower.includes(profanityList[j])) {
-        filteredString = filteredString.replace(filteredStringElements[i], elementLower); // replace word in string with lower case equivalent, 'Tea' becomes 'tea'
-        filteredString = filteredString.replace(profanityList[j], '***'); // replace lower case equivalent with filter, 'tea' becomes '***'
+        // replace word in string with lower case equivalent, 'Tea' becomes 'tea'
+        filteredString = filteredString.replace(filteredStringElements[i], elementLower);
+        // replace lower case equivalent with filter, 'tea' becomes '***'
+        filteredString = filteredString.replace(profanityList[j], '***');
       }
     }
   }

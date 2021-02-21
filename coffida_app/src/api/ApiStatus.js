@@ -24,12 +24,12 @@ const getMessage = (statusCode) => {
       message = 'Sorry, we cannot fulfil your request at the moment.  Please try again later.';
       break;
     default:
-      message = 'There was an error';
+      message = 'There was an error.  Please try again later.';
   }
   console.log(message);
   return message;
 };
 
 module.exports = {
-  requestStatusMessage: getMessage,
+  responseStatusMessage: getMessage,
 };

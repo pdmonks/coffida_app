@@ -32,7 +32,7 @@ class FormUser extends Component {
           />
         </Item>
         <Item floatingLabel>
-          <Label>Password</Label>
+          <Label>Password (minimum 8 characters)</Label>
           <Input
             placeholder="Enter password..."
             onChangeText={this.props.onChangeTextPassword}

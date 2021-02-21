@@ -2,15 +2,15 @@ import React, { Component } from 'react';
 import {
   ScrollView, ToastAndroid, StyleSheet, View,
 } from 'react-native';
-import {
-  Container, Content, Text, Icon, H1, H3,
-} from 'native-base';
+import { Text, H1 } from 'native-base';
 import PropTypes from 'prop-types';
 import { postRequest } from '../../api/ApiRequests';
 import FormUser from '../shared/FormUser';
-import { ButtonBlock, ButtonLight } from '../shared/Buttons';
+import { ButtonLight } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
+import { responseStatusMessage } from '../../api/ApiStatus';
 
+// screen to allow new users to create an account
 class NewAccount extends Component {
   constructor(props) {
     super(props);
@@ -23,6 +23,7 @@ class NewAccount extends Component {
     };
   }
 
+  // check information entered into new user account form
   createAccountCheck = () => {
     const { firstNameValue } = this.state;
     const { lastNameValue } = this.state;
@@ -32,8 +33,8 @@ class NewAccount extends Component {
     if (firstNameValue.trim().length > 0
       && lastNameValue.trim().length > 0
       && emailValue.trim().length > 0
-      && passwordValue.trim().length > 0
-      && passwordCheckValue.trim().length > 0) {
+      && passwordValue.trim().length >= 8
+      && passwordCheckValue.trim().length >= 8) {
       if (passwordValue === passwordCheckValue) {
         this.createAccount(firstNameValue, lastNameValue, emailValue, passwordValue);
       } else {
@@ -44,6 +45,7 @@ class NewAccount extends Component {
     }
   }
 
+  // create URI for new account post request
   createAccount = async (firstNameValue, lastNameValue, emailValue, passwordValue) => {
     const pathStr = 'user';
     const contentType = 'application/json';
@@ -57,18 +59,19 @@ class NewAccount extends Component {
     this.postAccount(pathStr, contentType, bodyData);
   }
 
+  // post request for new account creation
   postAccount = async (path, type, data) => {
     const { navigation } = this.props;
     return postRequest(path, type, data)
       .then((response) => {
-        if (response.status === 201) {
-          return response.json();
-        } else if (response.status === 400) {
-          throw 'Invalid details entered, please try again';
-        } else if (response.status === 500) {
-          throw 'Sorry, we are unable to create your account at the moment, please try again later';
+        if (response.status !== 201) {
+          if (response.status === 400) {
+            throw 'Invalid details entered, please try again';
+          } else {
+            throw responseStatusMessage(response.status);
+          }
         } else {
-          throw 'There was a problem, please try again later';
+          return response.json();
         }
       })
       .then((responseJson) => {
@@ -82,11 +85,9 @@ class NewAccount extends Component {
 
   render() {
     const { navigation } = this.props;
-    const { firstNameValue } = this.state;
-    const { lastNameValue } = this.state;
-    const { emailValue } = this.state;
-    const { passwordValue } = this.state;
-    const { passwordCheckValue } = this.state;
+    const {
+      firstNameValue, lastNameValue, emailValue, passwordValue, passwordCheckValue,
+    } = this.state;
 
     const styles = StyleSheet.create({
       viewTitle: {
@@ -110,11 +111,16 @@ class NewAccount extends Component {
         <View style={styles.viewForm}>
           <ScrollView>
             <FormUser
-              onChangeTextFirstName={(firstNameValue) => this.setState({ firstNameValue })} valueFirstName={firstNameValue}
-              onChangeTextLastName={(lastNameValue) => this.setState({ lastNameValue })} valueLastName={lastNameValue}
-              onChangeTextEmail={(emailValue) => this.setState({ emailValue })} valueEmail={emailValue}
-              onChangeTextPassword={(passwordValue) => this.setState({ passwordValue })} valuePassword={passwordValue}
-              onChangeTextPasswordCheck={(passwordCheckValue) => this.setState({ passwordCheckValue })} valuePasswordCheck={passwordCheckValue}
+              onChangeTextFirstName={(firstNameValue) => this.setState({ firstNameValue })}
+              valueFirstName={firstNameValue}
+              onChangeTextLastName={(lastNameValue) => this.setState({ lastNameValue })}
+              valueLastName={lastNameValue}
+              onChangeTextEmail={(emailValue) => this.setState({ emailValue })}
+              valueEmail={emailValue}
+              onChangeTextPassword={(passwordValue) => this.setState({ passwordValue })}
+              valuePassword={passwordValue}
+              onChangeTextPasswordCheck={(passwordCheckValue) => this.setState({ passwordCheckValue })}
+              valuePasswordCheck={passwordCheckValue}
               buttonPress={() => this.createAccountCheck()}
               buttonLabel="Submit"
             />

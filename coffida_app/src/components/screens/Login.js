@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { ScrollView, ToastAndroid, StyleSheet, View } from 'react-native';
+import {
+  ScrollView, ToastAndroid, StyleSheet, View,
+} from 'react-native';
 import {
   Form, Text, H1, Icon,
 } from 'native-base';
@@ -10,8 +12,9 @@ import FormItem from '../shared/FormItem';
 import FormItemSecure from '../shared/FormItemSecure';
 import { ButtonBlock, ButtonLight } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
-import { requestStatusMessage } from '../../api/ApiStatus';
+import { responseStatusMessage } from '../../api/ApiStatus';
 
+// screen to allow user to log into their account
 class Login extends Component {
   constructor(props) {
     super(props);
@@ -21,6 +24,8 @@ class Login extends Component {
     };
   }
 
+  // input handlers
+
   handleEmail = (emailInput) => {
     this.setState({ emailValue: emailInput });
   }
@@ -29,11 +34,11 @@ class Login extends Component {
     this.setState({ passwordValue: passwordInput });
   }
 
-  handleLogin = () => {
+  // create URI and check all credentials entered
+  loginUser = () => {
     const pathStr = 'user/login';
     const contentType = 'application/json';
-    const { emailValue } = this.state;
-    const { passwordValue } = this.state;
+    const { emailValue, passwordValue } = this.state;
     if (emailValue.trim().length > 0 && passwordValue.trim().length > 0) {
       const bodyDataStr = {
         email: emailValue,
@@ -46,6 +51,7 @@ class Login extends Component {
     }
   }
 
+  // post request for user login
   postLogin = (path, type, data) => {
     const { navigation } = this.props;
     return postRequest(path, type, data)
@@ -54,18 +60,19 @@ class Login extends Component {
           if (response.status === 400) {
             throw 'Incorrect login details, please try again';
           } else {
-            throw requestStatusMessage(response.status);
+            throw responseStatusMessage(response.status);
           }
         } else {
           return response.json();
         }
       })
       .then((responseJson) => {
-        return this.saveUser(responseJson.id, responseJson.token);
+        return this.saveUserInfo(responseJson.id, responseJson.token);
       })
       .then((resp) => {
+        // wait for async storage save before going to home screen
         if (resp === 1) {
-          navigation.navigate('NavigatorTab'); // waits for async storage save before going to home screen
+          navigation.navigate('NavigatorTab');
         }
       })
       .catch((error) => {
@@ -73,7 +80,8 @@ class Login extends Component {
       });
   }
 
-  saveUser = async (id, token) => {
+  // save user id and token to async storage before navigating to home screen
+  saveUserInfo = async (id, token) => {
     try {
       await setAsyncItem('@id', id.toString());
       await setAsyncItem('@token', token);
@@ -86,8 +94,7 @@ class Login extends Component {
 
   render() {
     const { navigation } = this.props;
-    const { emailValue } = this.state;
-    const { passwordValue } = this.state;
+    const { emailValue, passwordValue } = this.state;
 
     const styles = StyleSheet.create({
       viewIcon: {
@@ -121,7 +128,7 @@ class Login extends Component {
               <FormItemSecure label="Password" placeholder="Password" onChangeText={this.handlePassword} value={passwordValue} />
             </Form>
             <Text>{' '}</Text>
-            <ButtonBlock buttonFunction={() => this.handleLogin()} buttonText="Login" />
+            <ButtonBlock buttonFunction={() => this.loginUser()} buttonText="Login" />
             <Text>{' '}</Text>
             <Text>{' '}</Text>
             <ButtonBlock buttonFunction={() => navigation.navigate('NewAccount')} buttonText="Register a new account" />
