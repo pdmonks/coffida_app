@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import {
-  View, Alert, PermissionsAndroid, StyleSheet,
+  View, Alert, PermissionsAndroid, StyleSheet, Button,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Geolocation from 'react-native-geolocation-service';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import { getDistance } from 'geolib';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
+import { getRequest } from '../../api/ApiRequests';
+import { responseStatusMessage } from '../../api/ApiStatus';
 
 // request location permission from user if not already obtained
 async function requestLocationPermission() {
@@ -43,38 +46,58 @@ class MyLocation extends Component {
       location: null,
       locationPermission: false,
       isLoading: true,
+      coffeeLocation: {
+        longitude: 0,
+        latitude: 0,
+        name: '',
+        town: '',
+        id: '',
+      },
+      // myLatitude: 0,
+      // myLongitude: 0,
     };
     this.findCoordinates = this.findCoordinates.bind(this);
   }
 
   // page setup; check user is logged in and reload page information
-  componentDidMount() {
+  async componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
       console.log('** My Location Screen **');
       checkUserLogin(this.props);
       this.findCoordinates();
+      this.getLocations();
     });
+    // await this.getLocations();
+    // this.findCoordinates();
+    // this.getLocations();
   }
 
   componentWillUnmount() {
     this.unsubscribe();
   }
 
+  findBlah = () => {
+    console.log('findme');
+    // this.getLocations();
+  }
+
   // get the current location of the user
-  findCoordinates = () => {
+  findCoordinates = async () => {
     const { locationPermission } = this.state;
     if (!locationPermission) {
       console.log('Asking for location permission...');
       this.state.locationPermission = requestLocationPermission();
     }
     Geolocation.getCurrentPosition((position) => {
-      console.log('Current position:', position);
+      console.log('My current position:', position);
       this.setState({
         location: {
           longitude: position.coords.longitude,
           latitude: position.coords.latitude,
         },
+        // myLongitude: position.coords.longitude,
+        // myLatitude: position.coords.latitude,
       });
       this.setState({ isLoading: false });
     },
@@ -88,8 +111,86 @@ class MyLocation extends Component {
     });
   };
 
+  // get coordinates of all locations
+  getLocations = async () => {
+    const path = 'find';
+    const { navigation } = this.props;
+    this.setState({ isLoading: true });
+    return getRequest(path)
+      .then((response) => {
+        if (response.status !== 200) {
+          if (response.status === 401) {
+            navigation.navigate('Login');
+            throw 'Unauthorised Request';
+          } else {
+            throw responseStatusMessage(response.status);
+          }
+        } else {
+          return response.json();
+        }
+      })
+      .then((responseJson) => {
+        if (responseJson.length === 0) {
+          console.log('nothing returned');
+          this.setState({
+            searchMessage: 'No results',
+          });
+        }
+        this.findClosestLocation(responseJson);
+        /* const latitude = this.state.myLatitude;     //  CHANGE to location.longitude??
+        const longitude = this.state.myLongitude;
+        const current = { latitude, longitude };
+
+        const closest = responseJson.map((location) => {
+          const coord = location;
+          return { coord, dist: getDistance(current, coord) };
+        })
+          .sort((a, b) => a.dist - b.dist)[0];
+
+        console.log('Closest location:', closest);
+        this.setState({
+          coffeeLocation: {
+            longitude: closest.coord.longitude,
+            latitude: closest.coord.latitude,
+            name: closest.coord.location_name,
+            town: closest.coord.location_town,
+            id: closest.coord.location_id,
+          },
+        }); */
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  // calculate distance between current location and all coffee locations to find nearest
+  findClosestLocation = (responseJson) => {
+    const { location } = this.state;
+    // const latitude = this.state.myLatitude;
+    const latitude = location.latitude;
+    // const longitude = this.state.myLongitude;
+    const longitude = location.longitude;
+    const current = { latitude, longitude };
+    const closest = responseJson.map((location) => {
+      const coord = location;
+      return { coord, dist: getDistance(current, coord) };
+    })
+      .sort((a, b) => a.dist - b.dist)[0]; // sort by distance to find shortest
+    console.log('Closest location:', closest);
+    this.setState({
+      coffeeLocation: {
+        longitude: closest.coord.longitude,
+        latitude: closest.coord.latitude,
+        name: closest.coord.location_name,
+        town: closest.coord.location_town,
+        id: closest.coord.location_id,
+      },
+    });
+  }
+
   render() {
-    const { isLoading, location } = this.state;
+    const { navigation } = this.props;
+    const { isLoading, location, coffeeLocation } = this.state;
 
     const styles = StyleSheet.create({
       container: {
@@ -107,13 +208,14 @@ class MyLocation extends Component {
     }
     return (
       <View style={styles.container}>
+
         <MapView
           provider={PROVIDER_GOOGLE}
           style={styles.map}
           region={{
             latitude: location.latitude,
             longitude: location.longitude,
-            latitudeDelta: 0.002,
+            latitudeDelta: 0.010,
             longitudeDelta: 0.002,
           }}
         >
@@ -122,7 +224,19 @@ class MyLocation extends Component {
             title="My current postion"
             description="I am here!"
           />
+          <Marker
+            coordinate={coffeeLocation}
+            onPress={() => {
+              console.log('Go to location');
+              navigation.navigate('Location', { locationId: coffeeLocation.id });
+            }}
+            pinColor="#0000ff"
+            title={coffeeLocation.name}
+            description={coffeeLocation.town}
+          />
         </MapView>
+
+        <Button title="Search" onPress={this.findBlah.bind(this)} />
 
       </View>
     );

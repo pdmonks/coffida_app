@@ -24,7 +24,7 @@ class Location extends Component {
       locationIdValue: 0,
       locationNameValue: '',
       locationTownValue: '',
-      photoPathValue: '',           // photo_path               ** NEED TO IMPLEMENT THIS
+      photoPathValue: '',
       avgOverallRatingValue: 0,
       avgPriceRatingValue: 0,
       avgQualityRatingValue: 0,
@@ -74,14 +74,14 @@ class Location extends Component {
           locationIdValue: responseJson.location_id,
           locationNameValue: responseJson.location_name,
           locationTownValue: responseJson.location_town,
-          // photoPathValue: responseJson.photo_path,
+          photoPathValue: responseJson.photo_path,
           avgOverallRatingValue: responseJson.avg_overall_rating,
           avgPriceRatingValue: responseJson.avg_price_rating,
           avgQualityRatingValue: responseJson.avg_quality_rating,
           avgClenlinessRatingValue: responseJson.avg_clenliness_rating,
           locationReviews: responseJson.location_reviews,
         });
-        // console.log(this.photoPathValue);
+        console.log(this.photoPathValue);
       })
       .catch((error) => {
         ToastAndroid.show(error, ToastAndroid.SHORT);
@@ -177,16 +177,6 @@ class Location extends Component {
       });
   }
 
-  /* favouriteLocation = () => {
-    if (this.state.favouriteLabel === 'add to favourites') {
-      this.setState({ favouriteLabel: 'remove from favourites' });
-    } else {
-      this.setState({ favouriteLabel: 'add to favourites' });
-    }
-    // Alert.alert(this.state.favouriteLabel);
-    // this.getLocationInfo;
-  } */
-
   render() {
     const { navigation } = this.props;
     const {
@@ -194,7 +184,7 @@ class Location extends Component {
       locationIdValue,
       locationNameValue,
       locationTownValue,
-    // const { photoPathValue } = this.state;
+      photoPathValue,
       avgOverallRatingValue,
       avgPriceRatingValue,
       avgQualityRatingValue,
@@ -206,6 +196,7 @@ class Location extends Component {
     const styles = StyleSheet.create({
       viewLocation: {
         flex: 1,
+        alignSelf: 'stretch',
       },
       viewReviews: {
         flex: 1,
@@ -225,27 +216,33 @@ class Location extends Component {
       <View style={commonStyles.background}>
 
         <ScrollView style={styles.viewLocation}>
-          <View>
-            <Image source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }} style={{ width: 100, height: 100 }} />
-            <Text>
-              {locationNameValue}
-              {', '}
-              {locationTownValue}
-              {locationIdValue}
-            </Text>
-            <Text>Overall </Text>
-            <StarFixed rating={avgOverallRatingValue} />
-            <Text>Price </Text>
-            <StarFixed rating={avgPriceRatingValue} />
-            <Text>Quality </Text>
-            <StarFixed rating={avgQualityRatingValue} />
-            <Text>Cleanliness </Text>
-            <StarFixed rating={avgClenlinessRatingValue} />
-          </View>
-          <View>
+          <Card>
+            <CardItem>
+              <Image source={{ uri: photoPathValue }} style={{ width: 100, height: 100 }} />
+            </CardItem>
+            <CardItem>
+              <Text>
+                {locationNameValue}
+                {', '}
+                {locationTownValue}
+                {locationIdValue}
+              </Text>
+            </CardItem>
+            <CardItem>
+              <Text>Overall </Text>
+              <StarFixed rating={avgOverallRatingValue} />
+              <Text> Price </Text>
+              <StarFixed rating={avgPriceRatingValue} />
+            </CardItem>
+            <CardItem>
+              <Text>Quality </Text>
+              <StarFixed rating={avgQualityRatingValue} />
+              <Text> Cleanliness </Text>
+              <StarFixed rating={avgClenlinessRatingValue} />
+            </CardItem>
             <ButtonBlock buttonFunction={() => this.addFavouriteLocation()} buttonText="Add to My Favourites" />
             <ButtonBlock buttonFunction={() => navigation.navigate('ReviewCreate', { locationId: selectedLocation })} buttonText="Post a review" />
-          </View>
+          </Card>
         </ScrollView>
 
         <View style={styles.viewReviews}>
