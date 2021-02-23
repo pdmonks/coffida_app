@@ -163,7 +163,7 @@ class LocationsFavourite extends Component {
                 />
                 <ButtonBlock
                   buttonFunction={() => this.deleteFavourite(item.location_id.toString())}
-                  buttonText="Remove From Favourites"
+                  buttonText="Remove From My Favourite Locations"
                 />
               </Card>
             )}

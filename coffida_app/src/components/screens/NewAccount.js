@@ -9,6 +9,7 @@ import FormUser from '../shared/FormUser';
 import { ButtonLight } from '../shared/Buttons';
 import { commonStyles } from '../../styles/CommonStyles';
 import { responseStatusMessage } from '../../api/ApiStatus';
+import { validEmailFormat } from '../../utilityFunctions/UtilityFunctions';
 
 // screen to allow new users to create an account
 class NewAccount extends Component {
@@ -35,10 +36,14 @@ class NewAccount extends Component {
       && emailValue.trim().length > 0
       && passwordValue.trim().length >= 8
       && passwordCheckValue.trim().length >= 8) {
-      if (passwordValue === passwordCheckValue) {
-        this.createAccount(firstNameValue, lastNameValue, emailValue, passwordValue);
+      if (validEmailFormat(emailValue)) {
+        if (passwordValue === passwordCheckValue) {
+          this.createAccount(firstNameValue, lastNameValue, emailValue, passwordValue);
+        } else {
+          ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT);
+        }
       } else {
-        ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT);
+        ToastAndroid.show('Not a valid email address', ToastAndroid.SHORT);
       }
     } else {
       ToastAndroid.show('Please complete all information', ToastAndroid.SHORT);

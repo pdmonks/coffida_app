@@ -105,7 +105,16 @@ class Locations extends Component {
   }
 
   // increase offset result value in URI parameter, before searching for further locations
-  moreResults = async () => {
+  previousResults = async () => {
+    if (this.state.offsetValue > 0) {
+      await this.setState({ offsetValue: (parseInt(this.state.offsetValue) - this.state.incrementValue) });
+    }
+    console.log('offset value: ', this.state.offsetValue);
+    this.filteredLocationList(this.state.offsetValue);
+  }
+
+  // increase offset result value in URI parameter, before searching for further locations
+  nextResults = async () => {
     await this.setState({ offsetValue: (parseInt(this.state.offsetValue) + this.state.incrementValue) });
     console.log('offset value: ', this.state.offsetValue);
     this.filteredLocationList(this.state.offsetValue);
@@ -191,8 +200,8 @@ class Locations extends Component {
       },
       viewResults: {
         flex: 15,
-        // flexDirection: 'row',
-        alignSelf: 'stretch',
+        flexDirection: 'row',
+        // alignSelf: 'stretch',
         borderTopWidth: 1,
       },
     });
@@ -309,7 +318,8 @@ class Locations extends Component {
             )}
             keyExtractor={({ location_id }, index) => location_id.toString()}
           />
-          <ButtonBlock buttonFunction={() => this.moreResults()} buttonText="More Results..." />
+          <ButtonBlock buttonFunction={() => this.previousResults()} buttonText="Prev" />
+          <ButtonBlock buttonFunction={() => this.nextResults()} buttonText="Next" />
         </View>
 
       </View>

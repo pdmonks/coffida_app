@@ -53,8 +53,6 @@ class MyLocation extends Component {
         town: '',
         id: '',
       },
-      // myLatitude: 0,
-      // myLongitude: 0,
     };
     this.findCoordinates = this.findCoordinates.bind(this);
   }
@@ -68,18 +66,17 @@ class MyLocation extends Component {
       this.findCoordinates();
       this.getLocations();
     });
-    // await this.getLocations();
-    // this.findCoordinates();
-    // this.getLocations();
   }
 
   componentWillUnmount() {
     this.unsubscribe();
   }
 
-  findBlah = () => {
-    console.log('findme');
-    // this.getLocations();
+  // refresh the map when button is tapped
+  refreshMap = () => {
+    console.log('Refreshing map');
+    this.findCoordinates();
+    this.getLocations();
   }
 
   // get the current location of the user
@@ -96,8 +93,6 @@ class MyLocation extends Component {
           longitude: position.coords.longitude,
           latitude: position.coords.latitude,
         },
-        // myLongitude: position.coords.longitude,
-        // myLatitude: position.coords.latitude,
       });
       this.setState({ isLoading: false });
     },
@@ -137,26 +132,6 @@ class MyLocation extends Component {
           });
         }
         this.findClosestLocation(responseJson);
-        /* const latitude = this.state.myLatitude;     //  CHANGE to location.longitude??
-        const longitude = this.state.myLongitude;
-        const current = { latitude, longitude };
-
-        const closest = responseJson.map((location) => {
-          const coord = location;
-          return { coord, dist: getDistance(current, coord) };
-        })
-          .sort((a, b) => a.dist - b.dist)[0];
-
-        console.log('Closest location:', closest);
-        this.setState({
-          coffeeLocation: {
-            longitude: closest.coord.longitude,
-            latitude: closest.coord.latitude,
-            name: closest.coord.location_name,
-            town: closest.coord.location_town,
-            id: closest.coord.location_id,
-          },
-        }); */
       })
       .catch((error) => {
         console.log(error);
@@ -166,9 +141,7 @@ class MyLocation extends Component {
   // calculate distance between current location and all coffee locations to find nearest
   findClosestLocation = (responseJson) => {
     const { location } = this.state;
-    // const latitude = this.state.myLatitude;
     const latitude = location.latitude;
-    // const longitude = this.state.myLongitude;
     const longitude = location.longitude;
     const current = { latitude, longitude };
     const closest = responseJson.map((location) => {
@@ -236,7 +209,7 @@ class MyLocation extends Component {
           />
         </MapView>
 
-        <Button title="Search" onPress={this.findBlah.bind(this)} />
+        <Button title="Refresh" onPress={this.refreshMap.bind(this)} />
 
       </View>
     );

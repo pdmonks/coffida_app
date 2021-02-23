@@ -4,7 +4,7 @@ import { Text, H1, View } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { getRequest, patchRequest, postRequest } from '../../api/ApiRequests';
-import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
+import { checkUserLogin, validEmailFormat } from '../../utilityFunctions/UtilityFunctions';
 import { getAsyncItem, setAsyncItem } from '../../asyncStorage/AsyncUtilities';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
 import FormUser from '../shared/FormUser';
@@ -99,33 +99,37 @@ class UserAccount extends Component {
       passwordCheckValue,
     } = this.state;
     const bodyDataStr = {};
-    let clearedChecks = false;
+    let updateRequired = false;
 
     if (firstNameValue !== origFirstName
       && firstNameValue.trim().length > 0) {
       bodyDataStr['first_name'] = firstNameValue;
-      clearedChecks = true;
+      updateRequired = true;
     }
     if (lastNameValue !== origLastName
       && lastNameValue.trim().length > 0) {
       bodyDataStr['last_name'] = lastNameValue;
-      clearedChecks = true;
+      updateRequired = true;
     }
     if (emailValue !== origEmail
       && emailValue.trim().length > 0) {
-      bodyDataStr['email'] = (emailValue);
-      clearedChecks = true;
+      if (validEmailFormat(emailValue)) {
+        bodyDataStr['email'] = (emailValue);
+        updateRequired = true;
+      } else {
+        ToastAndroid.show('Not a valid email address', ToastAndroid.SHORT);
+      }
     }
     if (passwordValue !== origPassword
       && passwordValue.trim().length > 0) {
       if (passwordValue === passwordCheckValue) {
         bodyDataStr['password'] = (passwordValue);
-        clearedChecks = true;
+        updateRequired = true;
       } else {
         ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT);
       }
     }
-    if (clearedChecks) {
+    if (updateRequired) {
       const bodyData = JSON.stringify(bodyDataStr);
       this.patchUser(pathStr, contentType, bodyData);
     }

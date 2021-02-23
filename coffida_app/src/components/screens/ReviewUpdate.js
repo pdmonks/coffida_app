@@ -93,7 +93,6 @@ class ReviewUpdate extends Component {
       });
   }
 
-  // ADD INPUT VALIDATION
   // check inputs to construct URI for user review patch request
   updateReview = async (overall, price, quality, clenliness, review) => {
     const { locationId, reviewId } = this.state;
@@ -107,34 +106,47 @@ class ReviewUpdate extends Component {
       origReviewBody,
     } = this.state;
     const bodyDataStr = {};
+    let updateRequired = false;
 
     if (overall !== origOverallRating) {
       bodyDataStr['overall_rating'] = parseInt(overall);
+      updateRequired = true;
     }
     if (price !== origPriceRating) {
       bodyDataStr['price_rating'] = parseInt(price);
+      updateRequired = true;
     }
     if (quality !== origQualityRating) {
       bodyDataStr['quality_rating'] = parseInt(quality);
+      updateRequired = true;
     }
     if (clenliness !== origClenlinessRating) {
       bodyDataStr['clenliness_rating'] = parseInt(clenliness);
+      updateRequired = true;
     }
     if (review !== origReviewBody) {
-      const filteredReview = await profanityFilter(review);
-      bodyDataStr['review_body'] = filteredReview;
+      if (review.trim().length > 0) {
+        const filteredReview = await profanityFilter(review);
+        bodyDataStr['review_body'] = filteredReview;
+        updateRequired = true;
+      } else {
+        ToastAndroid.show('Please add review text', ToastAndroid.SHORT);
+      }
     }
-    const bodyData = JSON.stringify(bodyDataStr);
-    this.patchReview(pathStr, contentType, bodyData);
+    if (updateRequired) {
+      const bodyData = JSON.stringify(bodyDataStr);
+      this.patchReview(pathStr, contentType, bodyData);
+    }
   }
 
   // patch request for user review update
   patchReview = async (path, type, data) => {
-    const { navigation } = this.state;
+    const { navigation } = this.props;
     return patchRequest(path, type, data)
       .then((response) => {
         if (response.status === 200) {
-          ToastAndroid.show('Updated!', ToastAndroid.SHORT);
+          ToastAndroid.show('Review updated!', ToastAndroid.SHORT);
+          navigation.goBack();
         } else if (response.status === 401) {
           navigation.navigate('Login');
           throw 'Unauthorised request';
@@ -195,7 +207,8 @@ class ReviewUpdate extends Component {
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Photo deleted!', ToastAndroid.SHORT);
-          this.getPhoto();
+          // this.getPhoto();
+          navigation.goBack();
         } else if (response.status === 401) {
           navigation.navigate('Login');
           throw 'Unauthorised request';

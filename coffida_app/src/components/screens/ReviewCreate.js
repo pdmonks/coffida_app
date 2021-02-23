@@ -48,10 +48,10 @@ class ReviewCreate extends Component {
     const pathStr = 'location/' + selectedLocation + '/review';
     const contentType = 'application/json';
     let bodyDataStr = '';
-    if ((overall >= 0 && overall <= 5)
-      && (price >= 0 && price <= 5)
-      && (quality >= 0 && quality <= 5)
-      && (clenliness >= 0 && clenliness <= 5)
+    if ((overall > 0 && overall <= 5)
+      && (price > 0 && price <= 5)
+      && (quality > 0 && quality <= 5)
+      && (clenliness > 0 && clenliness <= 5)
       && (review !== '')) {
       bodyDataStr = {
         overall_rating: parseInt(overall),
@@ -63,7 +63,7 @@ class ReviewCreate extends Component {
       const bodyData = JSON.stringify(bodyDataStr);
       this.postReview(pathStr, contentType, bodyData);
     } else {
-      console.log('missing data');
+      ToastAndroid.show('Please complete all information', ToastAndroid.SHORT);
     }
   }
 

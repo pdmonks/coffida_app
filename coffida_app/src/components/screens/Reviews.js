@@ -3,7 +3,7 @@ import {
   View, FlatList, ToastAndroid, StyleSheet,
 } from 'react-native';
 import {
-  Text, H1, Card, CardItem,
+  Text, H1, Card, CardItem, Icon,
 } from 'native-base';
 import PropTypes from 'prop-types';
 import { getRequest } from '../../api/ApiRequests';
@@ -147,8 +147,8 @@ class Reviews extends Component {
                   </Text>
                 </CardItem>
                 <CardItem>
+                  <Icon name="thumbs-up" style={{ fontSize: 20, color: 'gold' }} />
                   <Text>
-                    {'Likes: '}
                     {item.review.likes}
                   </Text>
                 </CardItem>
