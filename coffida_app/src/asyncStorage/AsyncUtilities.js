@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Utility functions to manage data in Async storage
+
+// function to get data item from Async storage
 const getItem = async (item) => {
   console.log('Get async-stored item: ', item);
   let retrieveItem = '';
@@ -7,7 +10,6 @@ const getItem = async (item) => {
     retrieveItem = await AsyncStorage.getItem(item);
     if (retrieveItem !== null) {
       console.log('retrieved async-stored value:', retrieveItem);
-      // return retrieveItem;
     }
   } catch (e) {
     console.log('Error when getting async-stored item...');
@@ -15,6 +17,7 @@ const getItem = async (item) => {
   return retrieveItem;
 };
 
+// function to store data item in Async storage
 const setItem = async (item, value) => {
   console.log('Set async-stored item:', item, 'to value:', value);
   try {

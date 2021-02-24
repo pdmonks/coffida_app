@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import {
-    Form, Item, Input, Text, Label, Picker,
+    Form, Item, Input, Text, Label,
 } from 'native-base';
-import StarRating from 'react-native-star-rating';
 import StarEditable from '../shared/StarEditable';
 import { ButtonBlock } from './Buttons';
+
+// shared review information form, used in new review and update review screens,
+// using shared button and editable star elements within the form.
 
 class FormReview extends Component {
   render() {

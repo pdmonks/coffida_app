@@ -44,7 +44,6 @@ class ReviewCreate extends Component {
   // construct URI from checked input values for new review post request
   submitReview = async (overall, price, quality, clenliness, review) => {
     const { selectedLocation } = this.state;
-    // const locId = selectedLocation;
     const pathStr = 'location/' + selectedLocation + '/review';
     const contentType = 'application/json';
     let bodyDataStr = '';
@@ -74,7 +73,6 @@ class ReviewCreate extends Component {
       .then((response) => {
         if (response.status === 201) {
           ToastAndroid.show('Review created!', ToastAndroid.SHORT);
-          // navigation.navigate('Location');
           this.addPhotoAlert();
         } else if (response.status === 401) {
           navigation.navigate('Login');
@@ -136,7 +134,9 @@ class ReviewCreate extends Component {
       })
       .then((revId) => {
         console.log('location: ', selectedLocation, ' review: ', revId);
-        navigation.navigate('ReviewPhoto', { locationId: selectedLocation, reviewId: revId, returnToPage: 'Location', pageParams: '{ locationId: ' + selectedLocation + ' }' });
+        navigation.navigate('ReviewPhoto', {
+          locationId: selectedLocation, reviewId: revId, returnToPage: 'Location', pageParams: '{ locationId: ' + selectedLocation + ' }',
+        });
       })
       .catch((error) => {
         ToastAndroid.show(error, ToastAndroid.SHORT);

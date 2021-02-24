@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { View, Text } from 'native-base';
+import { View } from 'native-base';
 import StarRating from 'react-native-star-rating';
+
+// shared component for all star ratings which are editable
 
 class StarEditable extends Component {
   render() {

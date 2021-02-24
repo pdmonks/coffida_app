@@ -80,7 +80,7 @@ class NewAccount extends Component {
         }
       })
       .then((responseJson) => {
-        ToastAndroid.show('Account created with ID: ' + responseJson.id + ' !', ToastAndroid.SHORT);
+        ToastAndroid.show('Account created!', ToastAndroid.SHORT);
         navigation.goBack();
       })
       .catch((error) => {

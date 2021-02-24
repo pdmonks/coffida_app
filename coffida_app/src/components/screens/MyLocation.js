@@ -46,12 +46,15 @@ class MyLocation extends Component {
       location: null,
       locationPermission: false,
       isLoading: true,
-      coffeeLocation: {
-        longitude: 0,
-        latitude: 0,
-        name: '',
-        town: '',
-        id: '',
+      // locations of three closest coffee shops; 0 is the closest
+      coffee0Location: {
+        longitude: 0, latitude: 0, name: '', town: '', id: '',
+      },
+      coffee1Location: {
+        longitude: 0, latitude: 0, name: '', town: '', id: '',
+      },
+      coffee2Location: {
+        longitude: 0, latitude: 0, name: '', town: '', id: '',
       },
     };
     this.findCoordinates = this.findCoordinates.bind(this);
@@ -64,7 +67,6 @@ class MyLocation extends Component {
       console.log('** My Location Screen **');
       checkUserLogin(this.props);
       this.findCoordinates();
-      this.getLocations();
     });
   }
 
@@ -76,7 +78,6 @@ class MyLocation extends Component {
   refreshMap = () => {
     console.log('Refreshing map');
     this.findCoordinates();
-    this.getLocations();
   }
 
   // get the current location of the user
@@ -94,6 +95,8 @@ class MyLocation extends Component {
           latitude: position.coords.latitude,
         },
       });
+      // now get the three closest coffee locations
+      this.getCoffeeLocations();
       this.setState({ isLoading: false });
     },
     (error) => {
@@ -107,8 +110,8 @@ class MyLocation extends Component {
   };
 
   // get coordinates of all locations
-  getLocations = async () => {
-    const path = 'find';
+  getCoffeeLocations = async () => {
+    const path = 'find?';
     const { navigation } = this.props;
     this.setState({ isLoading: true });
     return getRequest(path)
@@ -139,31 +142,39 @@ class MyLocation extends Component {
   }
 
   // calculate distance between current location and all coffee locations to find nearest
-  findClosestLocation = (responseJson) => {
+  findClosestLocation = async (responseJson) => {
     const { location } = this.state;
     const latitude = location.latitude;
     const longitude = location.longitude;
     const current = { latitude, longitude };
-    const closest = responseJson.map((location) => {
-      const coord = location;
-      return { coord, dist: getDistance(current, coord) };
-    })
-      .sort((a, b) => a.dist - b.dist)[0]; // sort by distance to find shortest
-    console.log('Closest location:', closest);
-    this.setState({
-      coffeeLocation: {
-        longitude: closest.coord.longitude,
-        latitude: closest.coord.latitude,
-        name: closest.coord.location_name,
-        town: closest.coord.location_town,
-        id: closest.coord.location_id,
-      },
-    });
+
+    // find the three closest locations and set state of coords
+    const closestLocations = ['coffee0Location', 'coffee1Location', 'coffee2Location'];
+    const closestThree = [];
+    for (let i = 0; i < closestLocations.length; i += 1) {
+      closestThree[i] = responseJson.map((locationCoord) => {
+        const coords = locationCoord;
+        return { coords, dist: getDistance(current, coords) };
+      })
+        .sort((a, b) => a.dist - b.dist)[i]; // sort by distance to find locations by distance
+      console.log('Closest location', i, ':', closestThree[i]);
+      this.setState({
+        [closestLocations[i]]: {
+          longitude: closestThree[i].coords.longitude,
+          latitude: closestThree[i].coords.latitude,
+          name: closestThree[i].coords.location_name,
+          town: closestThree[i].coords.location_town,
+          id: closestThree[i].coords.location_id,
+        },
+      });
+    }
   }
 
   render() {
     const { navigation } = this.props;
-    const { isLoading, location, coffeeLocation } = this.state;
+    const {
+      isLoading, location, coffee0Location, coffee1Location, coffee2Location,
+    } = this.state;
 
     const styles = StyleSheet.create({
       container: {
@@ -198,14 +209,34 @@ class MyLocation extends Component {
             description="I am here!"
           />
           <Marker
-            coordinate={coffeeLocation}
+            coordinate={coffee0Location}
             onPress={() => {
               console.log('Go to location');
-              navigation.navigate('Location', { locationId: coffeeLocation.id });
+              navigation.navigate('Location', { locationId: coffee0Location.id });
             }}
             pinColor="#0000ff"
-            title={coffeeLocation.name}
-            description={coffeeLocation.town}
+            title={coffee0Location.name}
+            description={coffee0Location.town}
+          />
+          <Marker
+            coordinate={coffee1Location}
+            onPress={() => {
+              console.log('Go to location');
+              navigation.navigate('Location', { locationId: coffee1Location.id });
+            }}
+            pinColor="#0000ff"
+            title={coffee1Location.name}
+            description={coffee1Location.town}
+          />
+          <Marker
+            coordinate={coffee2Location}
+            onPress={() => {
+              console.log('Go to location');
+              navigation.navigate('Location', { locationId: coffee2Location.id });
+            }}
+            pinColor="#0000ff"
+            title={coffee2Location.name}
+            description={coffee2Location.town}
           />
         </MapView>
 

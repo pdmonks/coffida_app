@@ -8,13 +8,14 @@ import Welcome from '../components/screens/Welcome';
 import Login from '../components/screens/Login';
 import NewAccount from '../components/screens/NewAccount';
 import NavigatorTab from './NavigatorTab';
-// import LocationNav from './LocationNav';
 import Location from '../components/screens/Location';
 import ReviewCreate from '../components/screens/ReviewCreate';
 import ReviewUpdate from '../components/screens/ReviewUpdate';
 import ReviewPhoto from '../components/screens/ReviewPhoto';
 
 const Stack = createStackNavigator();
+
+// stack navigator showing all pages in the Coffida app stack
 
 class NavigatorStack extends PureComponent {
   render() {

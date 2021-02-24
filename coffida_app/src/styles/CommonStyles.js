@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native';
 
+// common style used for all screens
+
 const commonStyles = StyleSheet.create({
   background: {
     flex: 1,

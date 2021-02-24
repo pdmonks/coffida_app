@@ -1,17 +1,19 @@
 import 'react-native-gesture-handler';
 import React, { PureComponent } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Home from '../components/screens/Home';
 import Locations from '../components/screens/Locations';
 import MyLocation from '../components/screens/MyLocation';
-// import Reviews from '../components/screens/Reviews';
-// import UserAccount from '../components/screens/UserAccount';
 import NavigatorDrawer from './NavigatorDrawer';
 
 const Tab = createBottomTabNavigator();
+
+// tab navigator showing all main routes in the Coffida app
+// Coffee Shops - search for coffee shops and select individual shops to post reviews
+// Coffee Now! - shows the nearest three coffee shops on the map
+// My Info - shows user account information, favourite locations and posted reviews
 
 class HomeNav extends PureComponent {
   render() {

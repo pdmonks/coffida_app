@@ -1,3 +1,5 @@
+// utility to check that profanity words are replaced by '***' in string inputs
+
 // add more words to the list as required...
 const profanityList = [
   'cake',
@@ -5,6 +7,7 @@ const profanityList = [
   'pastries',
 ];
 
+// split the input string into words then compare each word to the words in the profanity list
 const profFilter = (inputString) => {
   console.log('Input string:', inputString);
   let filteredString = inputString;

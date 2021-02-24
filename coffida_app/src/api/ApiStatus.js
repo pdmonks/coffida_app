@@ -1,3 +1,5 @@
+// Utility functions to return generic response messages for all DB requests
+
 const getMessage = (statusCode) => {
   console.log('status:', statusCode);
   let message = '';

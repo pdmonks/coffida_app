@@ -9,6 +9,8 @@ import LocationsFavourite from '../components/screens/LocationsFavourite';
 
 const Drawer = createDrawerNavigator();
 
+// drawer navigator showing all pages in the user information section
+
 class NavigatorDrawer extends PureComponent {
   render() {
     return (

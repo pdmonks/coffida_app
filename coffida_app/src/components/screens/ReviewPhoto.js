@@ -9,7 +9,7 @@ import { responseStatusMessage } from '../../api/ApiStatus';
 
 // screen to allow users to add a photo to a review
 class ReviewPhoto extends Component {
-  // check information entered into new user account form
+  // page setup; check user is logged in
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
@@ -40,7 +40,7 @@ class ReviewPhoto extends Component {
     this.postPhoto(pathStr, contentType, bodyData);
   }
 
-  // post request for new image
+  // post request for new image and return to previous screen
   postPhoto = async (path, type, data) => {
     const { navigation } = this.props;
     return postRequest(path, type, data)
@@ -48,8 +48,6 @@ class ReviewPhoto extends Component {
         if (response.status === 200) {
           ToastAndroid.show('Photo added', ToastAndroid.SHORT);
           // navigation.goBack();
-          // navigation.navigate('ReviewUpdate');
-          // const loc = 'ReviewUpdate';
           const loc = this.props.route.params.returnToPage;
           const par = this.props.route.params.pageParams;
           navigation.navigate(loc, par);

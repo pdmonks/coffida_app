@@ -170,9 +170,6 @@ class Locations extends Component {
     navigation.navigate('Location', { locationId: id });
   }
 
-  // https://github.com/GeekyAnts/NativeBase/issues/2947
-  // moved flatlist out from content tabs to prevent error warning
-
   render() {
     const {
       isLoading,
@@ -313,7 +310,7 @@ class Locations extends Component {
             data={locationListData.sort((a, b) => (a.location_id > b.location_id) ? 1 : -1)}
             renderItem={({ item }) => (
               <View>
-                <ButtonInfo buttonFunction={() => this.selectLocation(item.location_id.toString())} buttonText={item.location_name + ', ' + item.location_town + item.location_id} />
+                <ButtonInfo buttonFunction={() => this.selectLocation(item.location_id.toString())} buttonText={item.location_name + ', ' + item.location_town} />
               </View>
             )}
             keyExtractor={({ location_id }, index) => location_id.toString()}

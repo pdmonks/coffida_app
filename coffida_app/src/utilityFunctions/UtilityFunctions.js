@@ -1,5 +1,8 @@
 import { getAsyncItem } from '../asyncStorage/AsyncUtilities';
 
+// general utility functions used throughout the Coffida app
+
+// function to check that user is logged into their account
 const checkLogin = async (props) => {
   let loggedIn = false;
   console.log('checking if user is logged in...');
@@ -15,6 +18,7 @@ const checkLogin = async (props) => {
   return loggedIn;
 };
 
+// function to check email entries comply with structure defined
 const checkEmail = (emailValue) => {
   // const emailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
   const emailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Form, Item, Input, Text, Label } from 'native-base';
 import { ButtonBlock } from './Buttons'
 
+// shared user information form, used in new account and update account screens
+
 class FormUser extends Component {
   render() {
     return (

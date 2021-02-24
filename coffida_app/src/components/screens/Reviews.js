@@ -22,6 +22,7 @@ class Reviews extends Component {
     super(props);
     this.state = {
       isLoading: true,
+      searchMessage: '',
       userReviews: [],
     };
   }
@@ -47,6 +48,7 @@ class Reviews extends Component {
     const userId = await getAsyncItem('@id');
     const path = 'user/' + userId;
     this.setState({ isLoading: true });
+    this.setState({ searchMessage: '' });
     return getRequest(path)
       .then((response) => {
         if (response.status !== 200) {
@@ -65,6 +67,9 @@ class Reviews extends Component {
           isLoading: false,
           userReviews: responseJson.reviews,
         });
+        if (responseJson.reviews.length === 0) {
+          this.setState({ searchMessage: 'You have not posted any reviews' });
+        }
       })
       .catch((error) => {
         ToastAndroid.show(error, ToastAndroid.SHORT);
@@ -89,7 +94,7 @@ class Reviews extends Component {
   }
 
   render() {
-    const { isLoading, userReviews } = this.state;
+    const { isLoading, userReviews, searchMessage } = this.state;
 
     const styles = StyleSheet.create({
       viewTitle: {
@@ -107,17 +112,25 @@ class Reviews extends Component {
       );
     }
 
+    // results sorted by location name alphabetically then ID decrementally
     return (
 
       <View style={commonStyles.background}>
 
         <View style={styles.viewTitle}>
-          <H1>Reviews I have posted</H1>
+          <H1>My Posted Reviews</H1>
+          <Text>{searchMessage}</Text>
         </View>
 
         <View style={styles.viewReviews}>
           <FlatList
-            data={userReviews}
+            data={
+              userReviews.sort(
+                (a, b) => (a.location.location_name > b.location.location_name)
+                ? 1 : (a.location.location_name === b.location.location_name)
+                ? ((a.review.review_id > b.review.review_id) ? -1 : 1) : -1
+              )
+            }
             renderItem={({ item }) => (
               <Card>
                 <Text>

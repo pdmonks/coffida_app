@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Item, Input, Label } from 'native-base';
 
+// shared component for text entry fields
+
 class FormItem extends Component {
   render() {
     return (

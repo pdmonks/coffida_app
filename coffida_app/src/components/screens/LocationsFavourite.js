@@ -20,6 +20,7 @@ class LocationsFavourite extends Component {
     super(props);
     this.state = {
       isLoading: true,
+      searchMessage: '',
       locationListData: [],
     };
   }
@@ -43,6 +44,7 @@ class LocationsFavourite extends Component {
   getLocations = async (path) => {
     const { navigation } = this.props;
     this.setState({ isLoading: true });
+    this.setState({ searchMessage: '' });
     return getRequest(path)
       .then((response) => {
         if (response.status !== 200) {
@@ -61,6 +63,9 @@ class LocationsFavourite extends Component {
           isLoading: false,
           locationListData: responseJson,
         });
+        if (responseJson.length === 0) {
+          this.setState({ searchMessage: 'You have no favourite locations' });
+        }
       })
       .catch((error) => {
         console.log(error);
@@ -106,7 +111,7 @@ class LocationsFavourite extends Component {
   }
 
   render() {
-    const { isLoading, locationListData } = this.state;
+    const { isLoading, locationListData, searchMessage } = this.state;
 
     const styles = StyleSheet.create({
       viewTitle: {
@@ -130,11 +135,12 @@ class LocationsFavourite extends Component {
 
         <View style={styles.viewTitle}>
           <H1>My Favourite Locations</H1>
+          <Text>{searchMessage}</Text>
         </View>
 
         <View style={styles.viewLocations}>
           <FlatList
-            data={locationListData}
+            data={locationListData.sort((a, b) => (a.location_name > b.location_name) ? 1 : -1)}
             renderItem={({ item }) => (
               <Card>
                 <Text>

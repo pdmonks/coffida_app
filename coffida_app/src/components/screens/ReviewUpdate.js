@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  ScrollView, ToastAndroid, Image, StyleSheet,
+  ScrollView, ToastAndroid, Image, StyleSheet, Alert,
 } from 'react-native';
 import { Text, View, H1 } from 'native-base';
 import PropTypes from 'prop-types';
@@ -18,6 +18,7 @@ class ReviewUpdate extends Component {
   // takes parameters from reviews list screen to allow updating of single reviews
   constructor(props) {
     super(props);
+    // parameters
     const {
       locationId,
       reviewId,
@@ -29,6 +30,7 @@ class ReviewUpdate extends Component {
       reviewClenliness,
       reviewBody,
     } = this.props.route.params;
+    // variables
     this.state = {
       isLoading: true,
       locationId: locationId,
@@ -45,7 +47,7 @@ class ReviewUpdate extends Component {
       qualityRatingValue: reviewQuality,
       clenlinessRatingValue: reviewClenliness,
       reviewBodyValue: reviewBody,
-      photoPath: 'https://reactnative.dev/img/tiny_logo.png', // photo_path with placeholder image
+      photoPath: 'https://reactnative.dev/img/tiny_logo.png', // photo_path with example placeholder image
       defaultPhotoPath: 'https://reactnative.dev/img/tiny_logo.png', // would set these as Coffida website logo if it was real!
     };
   }
@@ -68,7 +70,7 @@ class ReviewUpdate extends Component {
   getPhoto = async () => {
     const { locationId, reviewId } = this.state;
     // force loading of image from server with timestamp suffix on URI
-    const path = 'location/' + locationId + '/review/' + reviewId + '/photo?timestamp=' + Date.now();
+    const path = 'location/' + locationId + '/review/' + reviewId + '/photo?';
     return getRequest(path)
       .then((response) => {
         if (response.status !== 200) {
@@ -161,9 +163,22 @@ class ReviewUpdate extends Component {
 
   // construct URI for delete review request
   deleteReview = async () => {
+    const { navigation } = this.props;
     const { locationId, reviewId } = this.state;
     const pathStr = 'location/' + locationId + '/review/' + reviewId;
-    this.deleteReviewData(pathStr);
+    Alert.alert(
+      'Delete Review',
+      'Are you sure you want to delete this review?',
+      [
+        {
+          text: 'No',
+          onPress: () => navigation.goBack(),
+          style: 'cancel',
+        },
+        { text: 'Yes', onPress: () => this.deleteReviewData(pathStr) },
+      ],
+      { cancelable: false },
+    );
   }
 
   // delete request for user review
@@ -190,14 +205,29 @@ class ReviewUpdate extends Component {
   addPhoto = () => {
     const { navigation } = this.props;
     const { locationId, reviewId } = this.state;
-    navigation.navigate('ReviewPhoto', { locationId: locationId, reviewId: reviewId, returnToPage: 'ReviewUpdate', pageParams: '' });
+    navigation.navigate('ReviewPhoto', {
+      locationId: locationId, reviewId: reviewId, returnToPage: 'ReviewUpdate', pageParams: '',
+    });
   }
 
   // construct URI for delete review photo request
   deletePhoto = async () => {
+    const { navigation } = this.props;
     const { locationId, reviewId } = this.state;
     const pathStr = 'location/' + locationId + '/review/' + reviewId + '/photo';
-    this.deletePhotoData(pathStr);
+    Alert.alert(
+      'Delete Photo',
+      'Are you sure you want to delete this photo?',
+      [
+        {
+          text: 'No',
+          onPress: () => navigation.goBack(),
+          style: 'cancel',
+        },
+        { text: 'Yes', onPress: () => this.deletePhotoData(pathStr) },
+      ],
+      { cancelable: false },
+    );
   }
 
   // delete photo request for review image
@@ -207,7 +237,6 @@ class ReviewUpdate extends Component {
       .then((response) => {
         if (response.status === 200) {
           ToastAndroid.show('Photo deleted!', ToastAndroid.SHORT);
-          // this.getPhoto();
           navigation.goBack();
         } else if (response.status === 401) {
           navigation.navigate('Login');

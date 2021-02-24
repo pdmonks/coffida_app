@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ToastAndroid, StyleSheet } from 'react-native';
+import { ToastAndroid, StyleSheet, Alert } from 'react-native';
 import { Text, H1, View } from 'native-base';
 import PropTypes from 'prop-types';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -31,6 +31,7 @@ class UserAccount extends Component {
   }
 
   // page setup; check user is logged in and reload page information
+
   componentDidMount() {
     const { navigation } = this.props;
     this.unsubscribe = navigation.addListener('focus', () => {
@@ -160,7 +161,18 @@ class UserAccount extends Component {
     const pathStr = 'user/logout';
     const contentType = null;
     const bodyData = null;
-    this.postLogout(pathStr, contentType, bodyData);
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        { text: 'Yes', onPress: () => this.postLogout(pathStr, contentType, bodyData) },
+      ],
+      { cancelable: false },
+    );
   }
 
   // post request for user logout

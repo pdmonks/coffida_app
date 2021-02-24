@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Text, Card, CardItem, Icon } from 'native-base';
 import PropTypes from 'prop-types';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { deleteRequest, getRequest, postRequest } from '../../api/ApiRequests';
 import { checkUserLogin } from '../../utilityFunctions/UtilityFunctions';
 import IsLoadingIndicator from '../shared/IsLoadingIndicator';
@@ -34,6 +34,7 @@ class Location extends Component {
       favouriteLocations: [],
       likedReviews: [],
       reviewPhotos: [],
+      searchMessage: '',
     };
   }
 
@@ -57,9 +58,9 @@ class Location extends Component {
   getLocationInfo = async () => {
     const { navigation } = this.props;
     const { selectedLocation } = this.state;
-    // const locId = selectedLocation;
     const path = 'location/' + selectedLocation;
     this.setState({ isLoading: true });
+    this.setState({ searchMessage: '' });
     return getRequest(path)
       .then((response) => {
         if (response.status !== 200) {
@@ -76,7 +77,6 @@ class Location extends Component {
       .then((responseJson) => {
         this.getUserInfo(); // to obtain favourite locations and liked reviews
         this.setState({
-          // isLoading: false,
           locationIdValue: responseJson.location_id,
           locationNameValue: responseJson.location_name,
           locationTownValue: responseJson.location_town,
@@ -87,6 +87,9 @@ class Location extends Component {
           avgClenlinessRatingValue: responseJson.avg_clenliness_rating,
           locationReviews: responseJson.location_reviews,
         });
+        if (responseJson.location_reviews.length === 0) {
+          this.setState({ searchMessage: 'No reviews yet!' });
+        }
         this.getPhotoInfo(this.state.locationReviews); // find out which reviews have photos posted
       })
       .catch((error) => {
@@ -101,7 +104,7 @@ class Location extends Component {
     const photos = [];
     for (let i = 0; i < locationReviews.length; i += 1) {
       console.log(locationReviews[i].review_id);
-      const path = 'location/' + this.state.selectedLocation + '/review/' + locationReviews[i].review_id + '/photo?timestamp=' + Date.now();
+      const path = 'location/' + this.state.selectedLocation + '/review/' + locationReviews[i].review_id + '/photo?';
       const response = await this.getPhoto(path); // response is status code from photo get requests
       if (response === 200) {
         photos.push(locationReviews[i].review_id);
@@ -152,15 +155,16 @@ class Location extends Component {
       });
   }
 
+  // extract favourite locations, then liked reviews
   extractUserInfo = async (responseJson) => {
     await this.extractFavouriteLocations(responseJson.favourite_locations);
     await this.extractLikedReviews(responseJson.liked_reviews);
     this.setState({ isLoading: false });
   }
 
+  // extract favourite locations to determine if favourite/unfavourite location icon rendered
   extractFavouriteLocations = async (favLocations) => {
     console.log('Getting favourite locations...');
-    // console.log(favLocations);
     const favLocationIds = [];
     for (let i = 0; i < favLocations.length; i += 1) {
       favLocationIds[i] = favLocations[i].location_id;
@@ -168,24 +172,19 @@ class Location extends Component {
     this.setState({ favouriteLocations: favLocationIds });
   }
 
-  // extract user liked review IDs to determine if like/unlike review button rendered
+  // extract user liked review IDs to determine if like/unlike review icon rendered
   extractLikedReviews = async (likedReviews) => {
     console.log('Getting liked reviews...');
-    // console.log(responseJson.liked_reviews);
-    // const likedReviews = responseJson.liked_reviews;
     const likedReviewIds = [];
     for (let i = 0; i < likedReviews.length; i += 1) {
-      // console.log(jsonsource[i].review.review_id);
       likedReviewIds[i] = likedReviews[i].review.review_id;
     }
-    // console.log(savedLikes);
     this.setState({ likedReviews: likedReviewIds });
   }
 
   // construct URI for post request to like a review
   likeReview = async (revId) => {
     const { selectedLocation } = this.state;
-    // const locId = selectedLocation;
     const pathStr = 'location/' + selectedLocation + '/review/' + revId + '/like';
     const contentType = null;
     const bodyData = null;
@@ -214,9 +213,7 @@ class Location extends Component {
 
   // construct URI for delete request to unlike a review
   unlikeReview = async (revId) => {
-    // const locId = await getAsyncItem('@selectedLocationId');
     const { selectedLocation } = this.state;
-    // const locId = selectedLocation;
     const pathStr = 'location/' + selectedLocation + '/review/' + revId + '/like';
     this.deleteLikeReview(pathStr);
   }
@@ -243,9 +240,7 @@ class Location extends Component {
 
   // construct URI for post request to add location to user favourites
   addFavouriteLocation = async () => {
-    // const locId = await getAsyncItem('@selectedLocationId');
     const { selectedLocation } = this.state;
-    // const locId = selectedLocation;
     const pathStr = 'location/' + selectedLocation + '/favourite';
     const contentType = null;
     const bodyData = null;
@@ -272,13 +267,14 @@ class Location extends Component {
       });
   }
 
+  // construct URI for delete request to delete location from user favourites
   deleteFavouriteLocation = async () => {
     const { selectedLocation } = this.state;
-    // const locId = await getAsyncItem('@selectedLocationId');
     const pathStr = 'location/' + selectedLocation + '/favourite';
     this.deleteFavouriteLocationData(pathStr);
   }
 
+  // delete request to delete location from user favourites
   deleteFavouriteLocationData = async (path) => {
     const { navigation } = this.props;
     return deleteRequest(path)
@@ -315,6 +311,7 @@ class Location extends Component {
       favouriteLocations,
       likedReviews,
       reviewPhotos,
+      searchMessage,
     } = this.state;
 
     const styles = StyleSheet.create({
@@ -323,7 +320,7 @@ class Location extends Component {
         alignSelf: 'stretch',
       },
       viewReviews: {
-        flex: 0.6,
+        flex: 0.9,
         alignSelf: 'stretch',
         borderTopWidth: 1,
       },
@@ -335,6 +332,8 @@ class Location extends Component {
       );
     }
 
+    // review images only rendered if they exist on the server,
+    // to prevent large empty space in card item
     return (
 
       <View style={commonStyles.background}>
@@ -348,10 +347,23 @@ class Location extends Component {
                 {locationNameValue}
                 {', '}
                 {locationTownValue}
-                {locationIdValue}
               </Text>
               {favouriteLocations.includes(locationIdValue)
-              && <Icon name="heart" style={{ fontSize: 20, color: 'red' }} /> }
+              && (
+                <View>
+                  <TouchableOpacity onPress={() => this.deleteFavouriteLocation()}>
+                    <Icon name="heart" style={{ fontSize: 20, color: 'red' }} />
+                  </TouchableOpacity>
+                </View>
+              ) }
+              {!favouriteLocations.includes(locationIdValue)
+              && (
+                <View>
+                  <TouchableOpacity onPress={() => this.addFavouriteLocation()}>
+                    <Icon name="heart-outline" style={{ fontSize: 20, color: 'red' }} />
+                  </TouchableOpacity>
+                </View>
+              ) }
             </CardItem>
             <CardItem>
               <Text>Overall </Text>
@@ -366,27 +378,27 @@ class Location extends Component {
               <StarFixed rating={avgClenlinessRatingValue} />
             </CardItem>
 
-            {favouriteLocations.includes(locationIdValue)
-            && <ButtonBlock buttonFunction={() => this.deleteFavouriteLocation()} buttonText="Remove from My Favourite Locations" /> }
-            {!favouriteLocations.includes(locationIdValue)
-            && <ButtonBlock buttonFunction={() => this.addFavouriteLocation()} buttonText="Add to My Favourite Locations" /> }
-
             <ButtonBlock buttonFunction={() => navigation.navigate('ReviewCreate', { locationId: selectedLocation })} buttonText="Post a review" />
           </Card>
         </ScrollView>
 
         <View style={styles.viewReviews}>
-          <Text>Reviews:</Text>
+          <Text>
+            {'Reviews: '}
+            {searchMessage}
+          </Text>
           <FlatList
             data={locationReviews}
             renderItem={({ item }) => (
               <Card>
+                {reviewPhotos.includes(item.review_id)
+                && (
+                  <CardItem>
+                    <Image source={{ uri: 'http://10.0.2.2:3333/api/1.0.0/location/' + selectedLocation + '/review/' + item.review_id + '/photo?timestamp=' + Date.now() }} style={{ width: 100, height: 100 }} />
+                  </CardItem>
+                )}
                 <CardItem>
-                  {reviewPhotos.includes(item.review_id)
-                  && <Image source={{ uri: 'http://10.0.2.2:3333/api/1.0.0/location/' + selectedLocation + '/review/' + item.review_id + '/photo?timestamp=' + Date.now() }} style={{ width: 100, height: 100 }} /> }
-                </CardItem>
-                <CardItem>
-                  <Text>Overall {item.review_id} {selectedLocation}</Text>
+                  <Text>Overall </Text>
                   <StarFixed rating={item.overall_rating} />
                   <Text> Price </Text>
                   <StarFixed rating={item.price_rating} />
@@ -405,16 +417,26 @@ class Location extends Component {
                   </Text>
                 </CardItem>
                 <CardItem>
-                  <Icon name="thumbs-up" style={{ fontSize: 20, color: 'gold' }} />
+                  {likedReviews.includes(item.review_id)
+                  && (
+                    <View>
+                      <TouchableOpacity onPress={() => this.unlikeReview(item.review_id.toString())}>
+                        <Icon name="thumbs-up" style={{ fontSize: 20, color: 'blue' }} />
+                      </TouchableOpacity>
+                    </View>
+                  ) }
+                  {!likedReviews.includes(item.review_id)
+                  && (
+                    <View>
+                      <TouchableOpacity onPress={() => this.likeReview(item.review_id.toString())}>
+                        <Icon name="thumbs-up-outline" style={{ fontSize: 20, color: 'blue' }} />
+                      </TouchableOpacity>
+                    </View>
+                  ) }
                   <Text>
                     {item.likes}
                   </Text>
                 </CardItem>
-
-                {likedReviews.includes(item.review_id)
-                && <ButtonBlock buttonFunction={() => this.unlikeReview(item.review_id.toString())} buttonText="Unlike review" /> }
-                {!likedReviews.includes(item.review_id)
-                && <ButtonBlock buttonFunction={() => this.likeReview(item.review_id.toString())} buttonText="Like review" /> }
 
               </Card>
             )}

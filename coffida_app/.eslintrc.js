@@ -10,6 +10,6 @@ module.exports = {
     "react/jsx-filename-extension": ["error", { "extensions": [".js", ".jsx"]}],
     "linebreak-style": ["error", "windows"],
     //"allowPattern": "^[a-z]+(_[a-z]+)+$",
-    //"react/prefer-stateless-function": [<enabled/>, { "ignorePureComponents": <ignorePureComponents/> }],
+    "react/prefer-stateless-function": [<enabled/>, { "ignorePureComponents": <ignorePureComponents/> }],
   }
 };
