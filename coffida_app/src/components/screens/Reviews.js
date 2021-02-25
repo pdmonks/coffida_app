@@ -138,7 +138,6 @@ class Reviews extends Component {
                   {', '}
                   {item.location.location_town}
                 </Text>
-                <Text>{item.review.review_id}</Text>
 
                 <CardItem>
                   <Text>Overall </Text>
